@@ -25,7 +25,7 @@ func Load() Config {
 	return Config{
 		Env:            getEnv("APP_ENV", "development"),
 		Port:           getEnv("PORT", "8080"),
-		DatabaseURL:    getEnv("DATABASE_URL", "postgres://binarytrade:binarytrade_dev@localhost:5432/binarytrade?sslmode=disable"),
+		DatabaseURL:    getEnv("DATABASE_URL", "postgres://void2empire:void2empire_dev@localhost:5432/void2empire?sslmode=disable"),
 		JWTSecret:      getEnv("JWT_SECRET", "dev-secret-change-me"),
 		JWTExpiry:      7 * 24 * time.Hour,
 		CookieName:     "access_token",

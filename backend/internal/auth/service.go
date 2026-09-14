@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"binarytrade/internal/models"
+	"void2empire/internal/models"
 )
 
 var (

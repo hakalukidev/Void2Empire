@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"binarytrade/internal/httpx"
+	"void2empire/internal/httpx"
 )
 
 const ContextUserIDKey = "userID"

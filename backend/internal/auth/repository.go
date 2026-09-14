@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"binarytrade/internal/models"
+	"void2empire/internal/models"
 )
 
 var (

@@ -1,4 +1,4 @@
-# BinaryTrade Pro
+# void2Empire
 
 A real-money futures and binary options trading platform. Monorepo with a Next.js frontend and a Go backend.
 

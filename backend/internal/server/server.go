@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"binarytrade/internal/auth"
-	"binarytrade/internal/config"
+	"void2empire/internal/auth"
+	"void2empire/internal/config"
 )
 
 func New(cfg config.Config, pool *pgxpool.Pool) *echo.Echo {

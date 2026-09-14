@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BinaryTrade Pro",
+  title: "void2Empire",
   description: "Real-money futures and binary options trading platform.",
 };
 

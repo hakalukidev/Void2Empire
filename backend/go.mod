@@ -1,4 +1,4 @@
-module binarytrade
+module void2empire
 
 go 1.26.7
 

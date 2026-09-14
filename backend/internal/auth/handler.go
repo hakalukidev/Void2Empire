@@ -7,8 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"binarytrade/internal/httpx"
-	"binarytrade/internal/models"
+	"void2empire/internal/httpx"
+	"void2empire/internal/models"
 )
 
 type CookieOptions struct {

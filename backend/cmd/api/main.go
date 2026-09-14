@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	"binarytrade/internal/config"
-	"binarytrade/internal/database"
-	"binarytrade/internal/server"
+	"void2empire/internal/config"
+	"void2empire/internal/database"
+	"void2empire/internal/server"
 )
 
 func main() {
