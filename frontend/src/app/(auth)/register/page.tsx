@@ -2,13 +2,20 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { registerSchema, type RegisterInput } from "@/lib/validators/auth";
+import { registerUser } from "@/lib/api/auth";
+import { useAuthStore } from "@/store/auth-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser);
   const {
     register,
     handleSubmit,
@@ -16,7 +23,20 @@ export default function RegisterPage() {
   } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) });
 
   const onSubmit = async (data: RegisterInput) => {
-    console.log(data);
+    try {
+      const user = await registerUser({
+        fullName: data.fullName,
+        email: data.email,
+        country: data.country,
+        phone: data.phone,
+        password: data.password,
+      });
+      setUser(user);
+      router.push("/dashboard");
+    } catch (error) {
+      const message = isAxiosError(error) ? error.response?.data?.error : undefined;
+      toast.error(message ?? "Could not create account");
+    }
   };
 
   return (

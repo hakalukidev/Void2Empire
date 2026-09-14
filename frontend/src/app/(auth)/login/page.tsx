@@ -2,13 +2,20 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { loginSchema, type LoginInput } from "@/lib/validators/auth";
+import { loginUser } from "@/lib/api/auth";
+import { useAuthStore } from "@/store/auth-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser);
   const {
     register,
     handleSubmit,
@@ -16,7 +23,14 @@ export default function LoginPage() {
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginInput) => {
-    console.log(data);
+    try {
+      const user = await loginUser(data);
+      setUser(user);
+      router.push("/dashboard");
+    } catch (error) {
+      const message = isAxiosError(error) ? error.response?.data?.error : undefined;
+      toast.error(message ?? "Could not log in");
+    }
   };
 
   return (

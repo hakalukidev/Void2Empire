@@ -50,7 +50,13 @@ src/config/              Static configuration (markets, etc.)
 
 ## Backend
 
-Not started yet.
+```bash
+cd backend
+cp .env.example .env
+go run ./cmd/api
+```
+
+Authentication (register/login/logout/me, JWT in an httpOnly cookie, PostgreSQL storage) is implemented. See [backend/README.md](backend/README.md) for details. Everything else from the proposal is not started yet.
 
 ## Disclaimer
 
