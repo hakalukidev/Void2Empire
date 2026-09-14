@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { HeroGlobe } from "@/components/marketing/hero-globe";
+import { HeroGlobeLazy } from "@/components/marketing/hero-globe-lazy";
 
 export function Hero() {
   return (
@@ -41,7 +41,7 @@ export function Hero() {
         </div>
 
         <div className="relative z-10 flex justify-center">
-          <HeroGlobe />
+          <HeroGlobeLazy />
         </div>
       </div>
     </section>

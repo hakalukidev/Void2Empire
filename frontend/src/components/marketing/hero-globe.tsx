@@ -1,3 +1,8 @@
+import { WORLD_LAND_PATH } from "@/components/marketing/world-land-path";
+
+const MAP_WIDTH = 520;
+const TILE_X = 200 - MAP_WIDTH / 2; // centers the map tile on the globe
+
 export function HeroGlobe() {
   return (
     <svg
@@ -7,6 +12,21 @@ export function HeroGlobe() {
       className="h-auto w-full max-w-[420px]"
       aria-hidden="true"
     >
+      <style>{`
+        @keyframes v2e-globe-spin {
+          from { transform: translateX(0); }
+          to { transform: translateX(-${MAP_WIDTH}px); }
+        }
+        .v2e-globe-spin {
+          animation: v2e-globe-spin 32s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .v2e-globe-spin {
+            animation-duration: 240s;
+          }
+        }
+      `}</style>
+
       <defs>
         <linearGradient id="globe-fill" x1="60" y1="60" x2="340" y2="340" gradientUnits="userSpaceOnUse">
           <stop stopColor="#f0abfc" />
@@ -17,6 +37,14 @@ export function HeroGlobe() {
           <stop offset="0%" stopColor="#a855f7" stopOpacity="0.35" />
           <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
         </radialGradient>
+        <radialGradient id="globe-shade" cx="42%" cy="38%" r="65%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.12" />
+          <stop offset="55%" stopColor="#ffffff" stopOpacity="0" />
+          <stop offset="100%" stopColor="#050109" stopOpacity="0.55" />
+        </radialGradient>
+        <clipPath id="globe-clip">
+          <circle cx="200" cy="200" r="130" />
+        </clipPath>
       </defs>
 
       <circle cx="200" cy="200" r="190" fill="url(#globe-glow)" />
@@ -46,10 +74,23 @@ export function HeroGlobe() {
         <circle cx="360" cy="290" r="3" />
       </g>
 
-      {/* globe */}
-      <circle cx="200" cy="200" r="130" fill="url(#globe-fill)" fillOpacity="0.85" />
-      <g stroke="#ffffff" strokeOpacity="0.4" strokeWidth="1" fill="none">
-        <ellipse cx="200" cy="200" rx="130" ry="130" />
+      {/* globe: ocean base + spinning land band */}
+      <circle cx="200" cy="200" r="130" fill="#160b28" />
+      <g clipPath="url(#globe-clip)">
+        <g className="v2e-globe-spin">
+          <path d={WORLD_LAND_PATH} fill="url(#globe-fill)" transform={`translate(${TILE_X},70)`} />
+          <path
+            d={WORLD_LAND_PATH}
+            fill="url(#globe-fill)"
+            transform={`translate(${TILE_X + MAP_WIDTH},70)`}
+          />
+        </g>
+        <circle cx="200" cy="200" r="130" fill="url(#globe-shade)" />
+      </g>
+
+      {/* wireframe grid over the sphere */}
+      <g stroke="#ffffff" strokeOpacity="0.35" strokeWidth="1" fill="none">
+        <circle cx="200" cy="200" r="130" />
         <ellipse cx="200" cy="200" rx="55" ry="130" />
         <ellipse cx="200" cy="200" rx="105" ry="130" />
         <ellipse cx="200" cy="200" rx="130" ry="55" />
