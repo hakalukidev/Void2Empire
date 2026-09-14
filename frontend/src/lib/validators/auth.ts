@@ -10,7 +10,7 @@ export const registerSchema = z
     fullName: z.string().min(2),
     email: z.string().email(),
     country: z.string().min(2),
-    phone: z.string().min(6),
+    phone: z.string().regex(/^\+\d{7,15}$/, "Enter a valid phone number"),
     password: z
       .string()
       .min(8)
