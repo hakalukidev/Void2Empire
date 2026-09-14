@@ -1,21 +1,23 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { PublicNavbar } from "@/components/layout/public-navbar";
+import { PublicFooter } from "@/components/layout/public-footer";
+import { Hero } from "@/components/marketing/hero";
+import { Features } from "@/components/marketing/features";
+import { MarketsShowcase } from "@/components/marketing/markets-showcase";
+import { HowItWorks } from "@/components/marketing/how-it-works";
+import { CtaSection } from "@/components/marketing/cta-section";
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 text-center">
-      <h1 className="text-4xl font-bold tracking-tight">BinaryTrade Pro</h1>
-      <p className="max-w-md text-muted-foreground">
-        Futures and binary options trading, with a risk-free demo account to practice on.
-      </p>
-      <div className="flex gap-4">
-        <Link href="/register">
-          <Button>Create account</Button>
-        </Link>
-        <Link href="/login">
-          <Button variant="secondary">Log in</Button>
-        </Link>
-      </div>
+    <div className="flex flex-1 flex-col">
+      <PublicNavbar />
+      <main className="flex-1">
+        <Hero />
+        <Features />
+        <MarketsShowcase />
+        <HowItWorks />
+        <CtaSection />
+      </main>
+      <PublicFooter />
     </div>
   );
 }
