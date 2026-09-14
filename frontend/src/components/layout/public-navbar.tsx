@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Bell, Menu, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
@@ -17,10 +17,10 @@ export function PublicNavbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0b0817]/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/">
-          <Logo />
+          <Logo className="text-white" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
@@ -28,19 +28,31 @@ export function PublicNavbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+              className="text-sm font-medium text-white/60 transition-colors hover:text-white"
             >
               {link.label}
             </a>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-4 md:flex">
           <Link href="/login">
-            <Button variant="ghost">Log in</Button>
+            <Button variant="gradient" className="rounded-full px-6">
+              Login
+            </Button>
           </Link>
-          <Link href="/register">
-            <Button>Create account</Button>
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="relative text-white/70 transition-colors hover:text-white"
+          >
+            <Bell className="h-5 w-5" />
+            <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-fuchsia-500 text-[9px] font-bold text-white">
+              1
+            </span>
+          </button>
+          <Link href="/register" aria-label="Account" className="text-white/70 transition-colors hover:text-white">
+            <User className="h-5 w-5" />
           </Link>
         </div>
 
@@ -48,21 +60,21 @@ export function PublicNavbar() {
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-label="Toggle menu"
-          className="text-foreground md:hidden"
+          className="text-white md:hidden"
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-border px-4 py-4 md:hidden">
+        <div className="border-t border-white/10 px-4 py-4 md:hidden">
           <nav className="flex flex-col gap-3">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                className="text-sm font-medium text-white/60 hover:text-white"
               >
                 {link.label}
               </a>
@@ -70,12 +82,14 @@ export function PublicNavbar() {
           </nav>
           <div className="mt-4 flex flex-col gap-2">
             <Link href="/login" onClick={() => setOpen(false)}>
-              <Button variant="secondary" className="w-full">
-                Log in
+              <Button variant="gradient" className="w-full rounded-full">
+                Login
               </Button>
             </Link>
             <Link href="/register" onClick={() => setOpen(false)}>
-              <Button className="w-full">Create account</Button>
+              <Button variant="secondary" className="w-full">
+                Create account
+              </Button>
             </Link>
           </div>
         </div>

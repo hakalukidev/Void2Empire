@@ -60,7 +60,7 @@ export function PublicFooter() {
 
         <div className="mt-10 border-t border-border pt-6 text-xs text-muted-foreground">
           <p>
-            © {new Date().getFullYear()} void2Empire. Trading futures and binary options
+            © {new Date().getFullYear()} Void2Empire. Trading futures and binary options
             carries a high level of risk and may not be suitable for all investors. Only trade
             with funds you can afford to lose.
           </p>

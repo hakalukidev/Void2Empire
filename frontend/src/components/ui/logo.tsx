@@ -38,7 +38,7 @@ export function Logo({ className, iconOnly = false, size = 32 }: LogoProps) {
       <LogoMark size={size} />
       {!iconOnly && (
         <span className="text-lg font-bold tracking-tight">
-          void<span className="text-primary">2</span>Empire
+          Void<span className="text-primary">2</span>Empire
         </span>
       )}
     </span>
