@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Go backend
+backend/bin/
+backend/tmp/
+*.exe
+*.test
