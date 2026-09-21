@@ -66,7 +66,9 @@ jobs:
 
   images:
     # The stack is deployed as images, so a Dockerfile that no longer builds
-    # breaks the deploy even when the native jobs above are green.
+    # breaks the deploy even when the native jobs above are green. On main
+    # this would duplicate build.yml, which pushes the same images.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

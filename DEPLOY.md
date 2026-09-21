@@ -199,17 +199,23 @@ is not redundant with the native ones — the stack ships as images, so a
 Dockerfile that stops building breaks the deploy even when everything else
 is green.
 
-`.github/workflows/deploy.yml` runs on merge to `main`:
+`.github/workflows/build.yml` runs on merge to `main`. It builds both images
+and pushes them to GHCR, tagged with the commit SHA and `latest`. They are
+built in Actions rather than on the VPS, which has 2 vCPU and would be
+compiling while serving live traffic. Nothing is deployed at this point.
 
-1. Builds both images and pushes them to GHCR, tagged with the commit SHA
-   and `latest`. They are built in Actions rather than on the VPS, which has
-   2 vCPU and is serving live traffic while it would be compiling.
-2. Waits for approval on the `production` environment.
-3. SSHes in, pins `IMAGE_TAG` in `.env`, pulls only `backend` and `frontend`
-   (pulling postgres or redis here would upgrade them during an unrelated
-   deploy), and restarts.
-4. Waits for every container to report healthy, then smoke-tests
-   `/api/health` and the frontend from outside.
+`.github/workflows/deploy.yml` is triggered by hand only — **Actions >
+Deploy > Run workflow**. It SSHes in, pins `IMAGE_TAG` in `.env`, pulls only
+`backend` and `frontend` (pulling postgres or redis here would upgrade them
+during an unrelated deploy), restarts, waits for every container to report
+healthy, then smoke-tests `/api/health` and the frontend from outside.
+
+The split is deliberate. A required-reviewer rule on the `production`
+environment would be the natural gate, but GitHub only offers environment
+protection rules on private repositories under a paid plan. A deploy that
+only ever runs when someone presses the button gives the same guarantee —
+no release without a human — at no cost. If the account moves to Pro, add
+the reviewer rule and `deploy.yml` can take `push: branches: [main]` back.
 
 Authentication to GHCR from the VPS uses the workflow's own `GITHUB_TOKEN`,
 piped in over stdin and expiring with the job, so no registry credential is
@@ -217,12 +223,13 @@ stored on the server and none appears in `ps`.
 
 ### One-time setup
 
+Already done, listed so it can be redone if the repo or box is rebuilt:
+
 - Repository secret `VPS_SSH_KEY` — the private half of the key in
   `deploy@`'s `authorized_keys`, labelled `github-actions-deploy`. It is
   separate from your own key so it can be revoked on its own.
-- Settings > Environments > `production`, with yourself as a required
-  reviewer. Without this the deploy job runs unattended.
-- The VPS host key is pinned in the workflow. Re-run `ssh-keyscan -t ed25519
+- The `production` environment exists, with no protection rules (see above).
+- The VPS host key is pinned in `deploy.yml`. Re-run `ssh-keyscan -t ed25519
   <ip>` and update it if the VPS is ever rebuilt.
 
 ### Rolling back
