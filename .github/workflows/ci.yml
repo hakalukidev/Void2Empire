@@ -30,6 +30,13 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # app/layout.tsx uses LayoutProps<"/">, which Next generates into
+      # .next/types. Without this step tsc runs against a checkout that has
+      # no generated types and fails on a name it cannot see; locally a stale
+      # tsconfig.tsbuildinfo hides that.
+      - name: Generate route types
+        run: npx next typegen
+
       # next build type-checks too, but running tsc on its own reports every
       # error at once instead of stopping at the first file.
       - name: Type check
