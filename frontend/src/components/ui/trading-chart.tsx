@@ -4,10 +4,15 @@ import { useEffect, useRef } from "react";
 import { createChart, ColorType, LineSeries } from "lightweight-charts";
 
 interface TradingChartProps {
-  data: { time: string; value: number }[];
+  data?: { time: string; value: number }[];
+  /**
+   * Pair label for the series. No price feed is wired up yet, so a chart
+   * given only a symbol renders the empty grid until one is.
+   */
+  symbol?: string;
 }
 
-export function TradingChart({ data }: TradingChartProps) {
+export function TradingChart({ data, symbol }: TradingChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +40,7 @@ export function TradingChart({ data }: TradingChartProps) {
     const lineSeries = chart.addSeries(LineSeries, {
       color: "#3b82f6",
       lineWidth: 2,
+      title: symbol ?? "",
     });
     
     if (data && data.length > 0) {
@@ -47,7 +53,7 @@ export function TradingChart({ data }: TradingChartProps) {
       window.removeEventListener("resize", handleResize);
       chart.remove();
     };
-  }, [data]);
+  }, [data, symbol]);
 
   return <div ref={chartContainerRef} className="w-full h-full min-h-[400px]" />;
 }
