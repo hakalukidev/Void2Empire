@@ -20,6 +20,10 @@ services:
       - backend
 
   frontend:
+    # CI builds and pushes this tag; the VPS only pulls it. IMAGE_TAG is
+    # pinned in .env by the deploy job, so a manual `docker compose up` here
+    # brings up the same version that is already running.
+    image: ghcr.io/hakalukidev/void2empire-frontend:${IMAGE_TAG:-latest}
     build:
       context: ./frontend
       args:
@@ -30,6 +34,7 @@ services:
       - "3000"
 
   backend:
+    image: ghcr.io/hakalukidev/void2empire-backend:${IMAGE_TAG:-latest}
     build:
       context: ./backend
     restart: unless-stopped

@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-3">
           <h2 className="text-2xl font-bold">1. Introduction</h2>
           <p>
-            Void2Empire ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our trading platform services.
+            Void2Empire (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our trading platform services.
           </p>
           <p>
             Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site.
