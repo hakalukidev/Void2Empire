@@ -38,9 +38,25 @@ apt update && apt upgrade -y && apt install -y fail2ban
 systemctl enable --now fail2ban
 ```
 
-In `/etc/ssh/sshd_config` set `PermitRootLogin no` and
-`PasswordAuthentication no`, then `systemctl restart ssh`. Confirm you can
-still log in as `deploy` **before** closing the root session.
+Editing `/etc/ssh/sshd_config` directly is not enough on Hostinger's image:
+it Includes `sshd_config.d/*` at the top, `50-cloud-init.conf` there sets
+`PasswordAuthentication yes`, and sshd keeps the **first** value it reads for
+a keyword. The override has to sort ahead of it:
+
+```bash
+sudo tee /etc/ssh/sshd_config.d/01-hardening.conf >/dev/null <<'CONF'
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+CONF
+sudo sshd -t && sudo systemctl restart ssh
+sudo sshd -T | grep -E '^(permitrootlogin|passwordauthentication) '
+```
+
+Confirm you can log in as `deploy` **before** closing the root session. The
+`deploy` account has no password, so give it `NOPASSWD` sudo via
+`/etc/sudoers.d/90-deploy` or sudo will be unusable.
 
 ## 2. Install Docker
 
@@ -116,9 +132,17 @@ curl -s -c /tmp/j -X POST $D/api/auth/register \
 
 curl -s -b /tmp/j $D/api/auth/me            # the user
 curl -s $D/api/auth/me                      # 401
-curl -s -b /tmp/j -X POST $D/api/auth/logout
+curl -s -b /tmp/j -c /tmp/j -X POST $D/api/auth/logout
 curl -s -b /tmp/j $D/api/auth/me            # 401 again
 ```
+
+`-c` on the logout call matters: without it curl never stores the expired
+cookie the server sends back, keeps replaying the old one, and `/me` answers
+200 as though logout had failed.
+
+Note that the token is a stateless JWT. Logout clears the cookie, but a token
+captured beforehand stays valid until it expires seven days later; revoking
+one early would need a deny list in Redis.
 
 Check that the `Set-Cookie` on register carries `Secure` as well as
 `HttpOnly` — that only happens when `APP_ENV=production`, which the compose
@@ -131,10 +155,27 @@ docker compose exec postgres \
   psql -U void2empire -d void2empire -c "delete from users where email like 'check+%@example.com';"
 ```
 
-## 7. Backups
+## 7. Backups and housekeeping
+
+Already in place on the VPS:
+
+- `/etc/cron.daily/v2e-backup` — nightly `pg_dump`, gzipped into
+  `/var/backups/void2empire/`, 14 days retained. Writes to `.part` and
+  renames, so a dump interrupted halfway never looks complete.
+- `/etc/docker/daemon.json` — `json-file` logs capped at 10 MB x 3 per
+  container. Log options apply at container creation, so changing them needs
+  `docker compose up -d --force-recreate`, not just a daemon restart.
+- `unattended-upgrades` for security patches, `fail2ban` on the sshd jail.
+
+Copy the dumps off the box as well — a VPS snapshot taken by the provider is
+not a substitute for a dump you can restore selectively. Test a restore once
+before you have real users.
+
+<details>
+<summary>The backup script, for reference</summary>
 
 Compose keeps data in the `pgdata` volume, which survives
-`docker compose down` but not `down -v`. Add a nightly dump:
+`docker compose down` but not `down -v`. The installed script:
 
 ```bash
 # /etc/cron.daily/v2e-backup  (chmod +x)
@@ -147,9 +188,7 @@ docker compose exec -T postgres pg_dump -U void2empire void2empire \
 find /var/backups/void2empire -name '*.sql.gz' -mtime +14 -delete
 ```
 
-Copy the dumps off the box as well — a VPS snapshot taken by the provider is
-not a substitute for a dump you can restore selectively. Test a restore once
-before you have real users.
+</details>
 
 ## Updating
 
