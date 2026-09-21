@@ -29,3 +29,6 @@ backend/bin/
 backend/tmp/
 *.exe
 *.test
+
+# Private context / project notes (never push to GitHub)
+context.md
