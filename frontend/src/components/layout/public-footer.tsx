@@ -8,7 +8,7 @@ const columns = [
       { href: "/trade/futures/BTCUSDT", label: "Futures trading" },
       { href: "/trade/binary/BTCUSDT", label: "Binary options" },
       { href: "/trade/demo", label: "Demo account" },
-      { href: "#markets", label: "Markets" },
+      { href: "/markets", label: "Markets" },
     ],
   },
   {
