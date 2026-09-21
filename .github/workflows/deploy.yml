@@ -1,0 +1,162 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to deploy (a commit SHA). Leave blank for this commit. Use an older SHA to roll back."
+        required: false
+
+# Deploys queue instead of racing; cancelling one halfway could leave the
+# stack on mismatched images.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  VPS_HOST: 187.7.17.199
+  VPS_USER: deploy
+
+jobs:
+  build:
+    # Images are built here rather than on the VPS: the box has 2 vCPU and is
+    # serving live traffic, and a next build there pegs both for minutes.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: tag
+        run: echo "tag=${{ inputs.tag || github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/hakalukidev/void2empire-backend:${{ steps.tag.outputs.tag }}
+            ${{ env.REGISTRY }}/hakalukidev/void2empire-backend:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://void2empire.com/api
+            NEXT_PUBLIC_WS_URL=wss://void2empire.com/ws
+          tags: |
+            ${{ env.REGISTRY }}/hakalukidev/void2empire-frontend:${{ steps.tag.outputs.tag }}
+            ${{ env.REGISTRY }}/hakalukidev/void2empire-frontend:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Requires a reviewer: configured under Settings > Environments > production.
+    environment:
+      name: production
+      url: https://void2empire.com
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Open an SSH session to the VPS
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Pinned host key -- accept-new would trust whatever answers first.
+          # Regenerate with ssh-keyscan if the VPS is ever rebuilt.
+          echo '187.7.17.199 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJs+K7v9zDrP6v105sSq1Tizhglwk3/pVdCNUH5q09rZ' > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Pull the new images and restart
+        env:
+          IMAGE_TAG: ${{ needs.build.outputs.tag }}
+          GHCR_USER: ${{ github.actor }}
+          # Scoped to this run and expires with it, so nothing long-lived is
+          # left behind on the server.
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Secrets go down the encrypted stdin stream, not on the ssh
+          # command line, where they would show up in ps on the VPS.
+          {
+            printf 'IMAGE_TAG=%q GHCR_USER=%q GHCR_TOKEN=%q\n' \
+              "$IMAGE_TAG" "$GHCR_USER" "$GHCR_TOKEN"
+            printf 'export IMAGE_TAG GHCR_USER GHCR_TOKEN\n'
+            cat <<'REMOTE'
+          set -euo pipefail
+          cd /opt/void2empire
+
+          # The compose file itself may have changed in this commit.
+          git fetch --quiet origin main
+          git checkout --quiet -B main origin/main
+
+          # Pin the tag so a later manual `docker compose up` on the box does
+          # not silently jump to :latest.
+          if grep -q '^IMAGE_TAG=' .env; then
+            sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=${IMAGE_TAG}|" .env
+          else
+            printf 'IMAGE_TAG=%s\n' "$IMAGE_TAG" >> .env
+          fi
+
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          # Only the app images: pulling postgres or redis here would upgrade
+          # them on an unrelated deploy.
+          docker compose pull backend frontend
+          docker compose up -d
+          docker logout ghcr.io >/dev/null
+
+          docker image prune -f >/dev/null
+          docker compose ps --format 'table {{.Service}}\t{{.Status}}'
+          REMOTE
+          } | ssh -i ~/.ssh/id_deploy "$VPS_USER@$VPS_HOST" bash -s
+
+      - name: Wait for the stack to report healthy
+        run: |
+          ssh -i ~/.ssh/id_deploy "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          cd /opt/void2empire
+          for i in $(seq 1 30); do
+            unhealthy=$(docker compose ps --format '{{.Service}} {{.Health}}' \
+              | awk '$2 != "healthy" && $2 != "" { print $1 }')
+            [ -z "$unhealthy" ] && echo "all healthy" && exit 0
+            echo "waiting on: $unhealthy"
+            sleep 5
+          done
+          echo "services did not become healthy in time" >&2
+          docker compose logs --tail 50 >&2
+          exit 1
+          REMOTE
+
+      - name: Smoke test from outside
+        run: |
+          set -euo pipefail
+          health=$(curl -fsS --retry 5 --retry-delay 3 https://void2empire.com/api/health)
+          echo "api: $health"
+          [ "$health" = '{"status":"ok"}' ]
+          code=$(curl -fsS -o /dev/null -w '%{http_code}' https://void2empire.com)
+          echo "frontend: $code"
+          [ "$code" = "200" ]

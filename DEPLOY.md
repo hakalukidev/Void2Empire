@@ -190,12 +190,59 @@ find /var/backups/void2empire -name '*.sql.gz' -mtime +14 -delete
 
 </details>
 
-## Updating
+## CI/CD
+
+`.github/workflows/ci.yml` runs on every pull request: lint, `tsc --noEmit`
+and `next build` for the frontend, `go vet`/`build`/`test` plus a `go mod
+tidy` diff for the backend, and a build of both Docker images. The image job
+is not redundant with the native ones — the stack ships as images, so a
+Dockerfile that stops building breaks the deploy even when everything else
+is green.
+
+`.github/workflows/deploy.yml` runs on merge to `main`:
+
+1. Builds both images and pushes them to GHCR, tagged with the commit SHA
+   and `latest`. They are built in Actions rather than on the VPS, which has
+   2 vCPU and is serving live traffic while it would be compiling.
+2. Waits for approval on the `production` environment.
+3. SSHes in, pins `IMAGE_TAG` in `.env`, pulls only `backend` and `frontend`
+   (pulling postgres or redis here would upgrade them during an unrelated
+   deploy), and restarts.
+4. Waits for every container to report healthy, then smoke-tests
+   `/api/health` and the frontend from outside.
+
+Authentication to GHCR from the VPS uses the workflow's own `GITHUB_TOKEN`,
+piped in over stdin and expiring with the job, so no registry credential is
+stored on the server and none appears in `ps`.
+
+### One-time setup
+
+- Repository secret `VPS_SSH_KEY` — the private half of the key in
+  `deploy@`'s `authorized_keys`, labelled `github-actions-deploy`. It is
+  separate from your own key so it can be revoked on its own.
+- Settings > Environments > `production`, with yourself as a required
+  reviewer. Without this the deploy job runs unattended.
+- The VPS host key is pinned in the workflow. Re-run `ssh-keyscan -t ed25519
+  <ip>` and update it if the VPS is ever rebuilt.
+
+### Rolling back
+
+Run the Deploy workflow manually (**Actions > Deploy > Run workflow**) and
+give it an older commit SHA as the tag. That skips the build, pulls the
+image already in GHCR and restarts onto it, so a rollback takes about as
+long as the pull.
+
+A rollback moves code, not data. A release that migrated the database needs
+a matching down-migration or a restore from the nightly dump.
+
+## Updating by hand
+
+CI/CD covers the normal path. Directly on the box, when you need it:
 
 ```bash
 cd /opt/void2empire
 git pull
-docker compose up -d --build
+docker compose up -d --build   # --build, or it will use the pinned image
 ```
 
 Migrations under `backend/internal/database/migrations` are embedded in the
