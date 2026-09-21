@@ -1,0 +1,30 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Go API. Same origin as the frontend, so the auth cookie just works
+	# and CORS never comes into play for browser traffic.
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# Reserved for the WebSocket feed (not implemented in the backend yet).
+	handle /ws* {
+		reverse_proxy backend:8080
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
