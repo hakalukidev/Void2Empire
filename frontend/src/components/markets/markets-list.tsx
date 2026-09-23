@@ -1,56 +1,55 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Card } from "@/components/ui/card";
 import { List } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-
-const rows = [
-  { symbol: "BTC/USDT", pair: "BTCUSDT", letter: "B", color: "bg-orange-500", price: "104,312.73", change: "-557.34", changePct: "-0.53%", up: false },
-  { symbol: "ETH/USDT", pair: "ETHUSDT", letter: "E", color: "bg-indigo-500", price: "2,509.44", change: "-15.23", changePct: "-0.60%", up: false },
-  { symbol: "GBP/USD", pair: "GBPUSD", letter: "G", color: "bg-emerald-500", price: "1.34654", change: "0.00444", changePct: "0.33%", up: true },
-  { symbol: "CAD/USD", pair: "CADUSD", letter: "C", color: "bg-rose-500", price: "0.72966", change: "-557.34", changePct: "-0.53%", up: false },
-  { symbol: "EUR/USD", pair: "EURUSD", letter: "E", color: "bg-sky-500", price: "1.14934", change: "0.00124", changePct: "0.11%", up: true },
-];
+import { useLocaleStore } from "@/store/locale-store";
+import { fetchMarkets, MarketRow } from "@/services/markets.service";
 
 export function MarketsList() {
+  const { t } = useLocaleStore();
+  const [rows, setRows] = useState<MarketRow[]>([]);
+
+  useEffect(() => {
+    fetchMarkets().then(setRows);
+  }, []);
+
   return (
-    <div className="rounded-2xl border border-white/5 bg-[#050b06] p-6">
+    <Card className="bg-card border-border p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">Markets</h2>
-        <List className="h-4 w-4 text-white/40" />
+        <h2 className="text-lg font-semibold">{t("markets.list_title")}</h2>
+        <List className="h-4 w-4 text-muted-foreground" />
       </div>
 
-      <ul className="mt-4 divide-y divide-white/5">
-        {rows.map((row) => (
-          <li key={row.symbol}>
-            <Link
-              href={`/trade/futures/${row.pair}`}
-              className="flex items-center justify-between gap-3 py-3 hover:opacity-80"
-            >
-              <span className="flex items-center gap-3">
-                <span
-                  className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white",
-                    row.color
-                  )}
-                >
-                  {row.letter}
+      <ul className="mt-4 divide-y divide-border">
+        {rows.length === 0 ? (
+          <li className="py-8 text-center text-sm text-muted-foreground">{t("markets.no_markets")}</li>
+        ) : (
+          rows.map((row) => (
+            <li key={row.pair}>
+              <Link
+                href={`/trade/futures/${row.pair}`}
+                className="flex items-center justify-between gap-3 py-3 hover:opacity-80"
+              >
+                <span className="text-sm font-medium">{row.symbol}</span>
+                <span className="text-right">
+                  <span className="block font-mono text-sm font-semibold">{row.price}</span>
+                  <span
+                    className={cn(
+                      "block font-mono text-xs font-medium",
+                      row.up ? "text-success" : "text-danger"
+                    )}
+                  >
+                    {row.change} {row.changePct}
+                  </span>
                 </span>
-                <span className="text-sm font-medium text-white">{row.symbol}</span>
-              </span>
-              <span className="text-right">
-                <span className="block text-sm font-semibold text-white">{row.price}</span>
-                <span
-                  className={cn(
-                    "block text-xs font-medium",
-                    row.up ? "text-emerald-400" : "text-rose-400"
-                  )}
-                >
-                  {row.change} {row.changePct}
-                </span>
-              </span>
-            </Link>
-          </li>
-        ))}
+              </Link>
+            </li>
+          ))
+        )}
       </ul>
-    </div>
+    </Card>
   );
 }

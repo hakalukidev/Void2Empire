@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, Lock, MessageSquare, ArrowRight, CheckCircle2 } from "lucide-react";
 
 // Mock: Replace with real auth store check
-const MOCK_AGENT_LEVEL = "none"; // "none" | "level1" | "pro"
+const MOCK_AGENT_LEVEL: "none" | "level1" | "pro" = "none"; // "none" | "level1" | "pro"
 
 const STEPS = [
   { step: 1, label: "Contact Support", desc: "Open a support chat and inform them you want to buy USDT directly from the company." },

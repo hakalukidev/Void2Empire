@@ -32,7 +32,8 @@ const NAV_SECTIONS = [
     items: [
       { href: "/admin/assets",               label: "Assets & Markets",  icon: Coins },
       { href: "/admin/trading",              label: "Trading Settings",  icon: BarChart2 },
-      { href: "/admin/funding",              label: "Funding",           icon: DollarSign },
+      { href: "/admin/funding",              label: "Funding Rates",     icon: DollarSign },
+      { href: "/admin/funding-system",       label: "Funding System",    icon: HandCoins },
       { href: "/admin/p2p",                  label: "P2P",               icon: ArrowLeftRight },
     ],
   },
@@ -40,7 +41,7 @@ const NAV_SECTIONS = [
     label: "Growth",
     items: [
       { href: "/admin/listing-applications", label: "Listing Apps",      icon: FileText },
-      { href: "/admin/referral",             label: "Referral & Funding",icon: HandCoins },
+      { href: "/admin/referral",             label: "Referral",          icon: HandCoins },
       { href: "/admin/announcements",        label: "Announcements",     icon: Megaphone },
     ],
   },
@@ -57,7 +58,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   const isActive = (href: string, exact?: boolean) =>
-    exact ? pathname === href : pathname.startsWith(href);
+    exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
   return (
     <aside className="hidden w-60 shrink-0 border-r border-border bg-card md:flex flex-col overflow-y-auto">

@@ -22,9 +22,9 @@ export default function AdminFundingManagementPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Funding Management</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Futures Funding Rates</h1>
         <p className="text-muted-foreground mt-1">
-          Monitor futures funding settlements and company fees collected.
+          Monitor perpetual futures funding settlements and company fees collected.
         </p>
       </div>
 

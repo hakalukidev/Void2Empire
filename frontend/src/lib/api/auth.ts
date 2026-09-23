@@ -20,3 +20,22 @@ export async function fetchCurrentUser() {
   const { data } = await apiClient.get<User>("/auth/me");
   return data;
 }
+
+// REQ-008 — email verification via 6-digit OTP (documented endpoint, Sec 18.2).
+export async function verifyEmail(input: { email: string; code: string }) {
+  const { data } = await apiClient.post<User>("/auth/verify-email", input);
+  return data;
+}
+
+export async function resendVerificationCode(email: string) {
+  await apiClient.post("/auth/verify-email/resend", { email });
+}
+
+// REQ-009 — password reset. Responses are enumeration-safe by design.
+export async function requestPasswordReset(email: string) {
+  await apiClient.post("/auth/password/forgot", { email });
+}
+
+export async function resetPassword(input: { token: string; password: string }) {
+  await apiClient.post("/auth/password/reset", input);
+}

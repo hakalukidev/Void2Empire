@@ -8,9 +8,11 @@ export function Sidebar() {
 
   const navItems = [
     { href: "/dashboard", labelKey: "nav.dashboard" },
+    { href: "/trade/spot/BTCUSDT", labelKey: "nav.spot" },
     { href: "/trade/futures/BTCUSDT", labelKey: "nav.futures" },
     { href: "/trade/binary/BTCUSDT", labelKey: "nav.binary" },
     { href: "/trade/demo", labelKey: "nav.demo" },
+    { href: "/funding", labelKey: "nav.funding" },
     { href: "/markets", labelKey: "nav.markets" },
     { href: "/orders", labelKey: "nav.orders" },
     { href: "/positions", labelKey: "nav.positions" },
@@ -18,7 +20,9 @@ export function Sidebar() {
     { href: "/wallet", labelKey: "nav.wallet" },
     { href: "/referral", labelKey: "nav.referral" },
     { href: "/leaderboard", labelKey: "nav.leaderboard" },
+    { href: "/listing-application", labelKey: "listing.title" },
     { href: "/p2p", labelKey: "nav.p2p" },
+    { href: "/announcements", labelKey: "nav.announcements" },
     { href: "/profile", labelKey: "nav.profile" },
   ];
 
