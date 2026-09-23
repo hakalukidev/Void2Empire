@@ -5,7 +5,10 @@ import { Card } from "@/components/ui/card";
 import { useLocaleStore } from "@/store/locale-store";
 import { History, TrendingUp, TrendingDown } from "lucide-react";
 
-type HistoryTab = "positions" | "orders" | "transactions";
+type HistoryTab = "positions" | "orders" | "transactions" | "funding";
+
+import { getMyFundingHistory, FundingHistoryEntry } from "@/services/futures-fees.service";
+import { useEffect } from "react";
 
 const HISTORY_POSITIONS = [
   { id: "POS-091", pair: "BTC-USDT", side: "Long",  leverage: 10, entryPrice: 60000, closePrice: 63000, size: 0.1, pnl: 300,   pnlPct: 5.0,  closedAt: "2024-09-20 15:22" },
@@ -30,11 +33,17 @@ const TABS: { key: HistoryTab; label: string }[] = [
   { key: "positions",    label: "Closed Positions" },
   { key: "orders",      label: "Order History" },
   { key: "transactions", label: "Transactions" },
+  { key: "funding",      label: "Funding History" },
 ];
 
 export default function HistoryPage() {
   const { t } = useLocaleStore();
   const [tab, setTab] = useState<HistoryTab>("positions");
+  const [fundingHistory, setFundingHistory] = useState<FundingHistoryEntry[]>([]);
+
+  useEffect(() => {
+    getMyFundingHistory().then(setFundingHistory);
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -171,6 +180,48 @@ export default function HistoryPage() {
                     <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">{tx.date}</td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          )}
+
+          {/* Funding History */}
+          {tab === "funding" && (
+            <table className="w-full text-sm text-left">
+              <thead className="bg-secondary/50 text-muted-foreground">
+                <tr>
+                  <th className="px-6 py-4 font-medium">Settlement ID</th>
+                  <th className="px-6 py-4 font-medium">Pair</th>
+                  <th className="px-6 py-4 font-medium">Side</th>
+                  <th className="px-6 py-4 font-medium">Margin</th>
+                  <th className="px-6 py-4 font-medium">Rate</th>
+                  <th className="px-6 py-4 font-medium">Amount</th>
+                  <th className="px-6 py-4 font-medium hidden md:table-cell">Company Fee</th>
+                  <th className="px-6 py-4 font-medium">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {fundingHistory.length === 0 ? (
+                  <tr><td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">No funding history found.</td></tr>
+                ) : fundingHistory.map((f) => {
+                  const isPaid = f.fundingAmount < 0;
+                  return (
+                    <tr key={f.id} className="hover:bg-secondary/20 transition-colors">
+                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{f.id}</td>
+                      <td className="px-6 py-4 font-bold">{f.pair}</td>
+                      <td className={`px-6 py-4 font-semibold ${f.side === "Long" ? "text-success" : "text-danger"}`}>{f.side}</td>
+                      <td className="px-6 py-4 font-mono">{f.margin} USDT</td>
+                      <td className="px-6 py-4 font-mono">{(f.fundingRate * 100).toFixed(4)}%</td>
+                      <td className="px-6 py-4">
+                        <span className={`font-mono font-bold ${isPaid ? "text-warning" : "text-success"}`}>
+                          {isPaid ? "" : "+"}{f.fundingAmount.toFixed(4)} USDT
+                        </span>
+                        <span className="text-[10px] ml-1.5 opacity-60 uppercase">{isPaid ? "Paid" : "Received"}</span>
+                      </td>
+                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground hidden md:table-cell">{f.companyFee.toFixed(4)} USDT</td>
+                      <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">{f.settledAt}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

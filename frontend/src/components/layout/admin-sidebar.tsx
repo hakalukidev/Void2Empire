@@ -7,7 +7,7 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import {
   LayoutDashboard, Users, Coins, Settings2, ArrowDownCircle,
   ArrowUpCircle, Wallet, ArrowLeftRight, BarChart2, Megaphone,
-  Activity, Settings, FileText, Users2, HandCoins, Ticket
+  Activity, Settings, FileText, Users2, HandCoins, Ticket, DollarSign
 } from "lucide-react";
 
 const NAV_SECTIONS = [
@@ -32,6 +32,7 @@ const NAV_SECTIONS = [
     items: [
       { href: "/admin/assets",               label: "Assets & Markets",  icon: Coins },
       { href: "/admin/trading",              label: "Trading Settings",  icon: BarChart2 },
+      { href: "/admin/funding",              label: "Funding",           icon: DollarSign },
       { href: "/admin/p2p",                  label: "P2P",               icon: ArrowLeftRight },
     ],
   },
