@@ -15,6 +15,7 @@ func New(cfg config.Config, pool *pgxpool.Pool) *echo.Echo {
 	e := echo.New()
 	e.HideBanner = true
 	e.Validator = NewRequestValidator()
+	e.HTTPErrorHandler = newErrorHandler()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
