@@ -28,6 +28,9 @@
   --brand-gold-500: #d4af37;
   --brand-gold-600: #b8912c;
   --brand-gold-700: #8c6d1f;
+
+  /* Marketing bands stay night-black in both themes; gold needs the dark ground. */
+  --brand-night: #0b0f19;
 }
 
 /* Light mode — toggled by next-themes via the .light class on <html> */

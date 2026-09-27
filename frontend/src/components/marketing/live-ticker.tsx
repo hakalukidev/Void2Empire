@@ -8,7 +8,7 @@ const trades = [
 
 export function LiveTicker() {
   return (
-    <section className="border-t border-white/10 bg-[#0b0817] py-8 text-white">
+    <section className="border-t border-white/10 bg-[var(--brand-night)] py-8 text-white">
       <div className="mx-auto flex max-w-6xl flex-wrap items-baseline justify-center gap-x-3 gap-y-1 px-4">
         <h2 className="text-xl font-bold">Markets</h2>
         <p className="text-xs text-white/50">Sample data — not live market prices.</p>
@@ -26,7 +26,7 @@ export function LiveTicker() {
                 <polyline
                   points={trade.points}
                   fill="none"
-                  stroke="#34d399"
+                  stroke="var(--success)"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"

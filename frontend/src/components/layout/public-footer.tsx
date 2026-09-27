@@ -35,7 +35,7 @@ export function PublicFooter() {
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <Logo />
+            <Logo tagline="Trade · Grow · Rule" />
             <p className="mt-2 text-sm text-muted-foreground">
               Futures and binary options trading, with a risk-free demo account.
             </p>

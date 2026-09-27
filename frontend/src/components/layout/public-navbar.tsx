@@ -53,7 +53,7 @@ export function PublicNavbar() {
             className="relative text-muted-foreground transition-colors hover:text-foreground"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-fuchsia-500 text-[9px] font-bold text-white">
+            <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
               1
             </span>
           </button>

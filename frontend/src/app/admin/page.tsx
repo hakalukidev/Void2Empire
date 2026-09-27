@@ -12,7 +12,7 @@ const KPI_CARDS = [
   { label: "Total Users",       value: "1,284",    sub: "+12 today",    icon: Users,       color: "text-primary",  bg: "bg-primary/10" },
   { label: "Total Deposited",   value: "$2.4M",     sub: "+$18,400 today", icon: DollarSign, color: "text-success",  bg: "bg-success/10" },
   { label: "Total Withdrawn",   value: "$1.1M",     sub: "+$8,200 today",  icon: ArrowUpRight, color: "text-warning", bg: "bg-warning/10" },
-  { label: "Active Positions",  value: "342",       sub: "Across all pairs", icon: BarChart2,  color: "text-fuchsia-400", bg: "bg-fuchsia-400/10" },
+  { label: "Active Positions",  value: "342",       sub: "Across all pairs", icon: BarChart2,  color: "text-primary",  bg: "bg-primary/10" },
   { label: "Platform Revenue",  value: "$48,230",   sub: "+$1,200 today",  icon: TrendingUp,  color: "text-success",  bg: "bg-success/10" },
 ];
 
@@ -49,7 +49,7 @@ const ACTIVITY_DOT: Record<string, string> = {
   deposit:    "bg-success",
   withdrawal: "bg-warning",
   trade:      "bg-primary",
-  kyc:        "bg-fuchsia-400",
+  kyc:        "bg-primary",
   admin:      "bg-secondary",
 };
 
