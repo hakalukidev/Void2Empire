@@ -5,8 +5,8 @@
   --foreground: #f8fafc;
   --card: #111827;
   --card-foreground: #f8fafc;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
+  --primary: #d4af37;
+  --primary-foreground: #0b0f19;
   --secondary: #1e293b;
   --secondary-foreground: #f8fafc;
   --muted: #1e293b;
@@ -16,11 +16,18 @@
   --destructive: #ef4444;
   --border: #1e293b;
   --input: #1e293b;
-  --ring: #3b82f6;
-  
+  --ring: #d4af37;
+
   --success: #10b981;
-  --warning: #f59e0b;
+  --warning: #d97706;
   --danger: #ef4444;
+
+  --brand-gold-200: #fbeec4;
+  --brand-gold-300: #f5d98b;
+  --brand-gold-400: #e8c56a;
+  --brand-gold-500: #d4af37;
+  --brand-gold-600: #b8912c;
+  --brand-gold-700: #8c6d1f;
 }
 
 /* Light mode — toggled by next-themes via the .light class on <html> */
@@ -29,7 +36,7 @@
   --foreground: #0b0f19;
   --card: #ffffff;
   --card-foreground: #0b0f19;
-  --primary: #2563eb;
+  --primary: #8a6512;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
   --secondary-foreground: #0b0f19;
@@ -40,11 +47,18 @@
   --destructive: #dc2626;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #2563eb;
+  --ring: #8a6512;
 
   --success: #059669;
-  --warning: #d97706;
+  --warning: #b45309;
   --danger: #dc2626;
+
+  /* Gold needs to darken on white to stay legible as text and as a fill. */
+  --brand-gold-300: #c08f22;
+  --brand-gold-400: #b07d1a;
+  --brand-gold-500: #96690f;
+  --brand-gold-600: #8a6512;
+  --brand-gold-700: #6b4e0d;
 }
 
 @theme inline {
@@ -67,6 +81,12 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-brand-gold-200: var(--brand-gold-200);
+  --color-brand-gold-300: var(--brand-gold-300);
+  --color-brand-gold-400: var(--brand-gold-400);
+  --color-brand-gold-500: var(--brand-gold-500);
+  --color-brand-gold-600: var(--brand-gold-600);
+  --color-brand-gold-700: var(--brand-gold-700);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -74,5 +94,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }

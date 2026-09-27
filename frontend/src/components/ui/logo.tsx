@@ -1,12 +1,16 @@
+import { useId } from "react";
 import { cn } from "@/lib/utils/cn";
 
 interface LogoProps {
   className?: string;
   iconOnly?: boolean;
   size?: number;
+  tagline?: string;
 }
 
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
+  const id = useId().replace(/:/g, "");
+
   return (
     <svg
       width={size}
@@ -18,27 +22,44 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="void2empire-gradient" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#60A5FA" />
-          <stop offset="1" stopColor="#1D4ED8" />
+        <linearGradient id={`${id}-gold`} x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+          <stop stopColor="var(--brand-gold-300)" />
+          <stop offset="0.55" stopColor="var(--brand-gold-500)" />
+          <stop offset="1" stopColor="var(--brand-gold-700)" />
         </linearGradient>
+        {/* Slicing the V's right arm into three prongs is what makes it read as an E. */}
+        <mask id={`${id}-notch`}>
+          <rect width="48" height="48" fill="white" />
+          <rect x="24" y="13" width="24" height="4.5" fill="black" />
+          <rect x="24" y="23" width="24" height="4.5" fill="black" />
+        </mask>
       </defs>
-      <rect width="48" height="48" rx="12" fill="url(#void2empire-gradient)" />
-      <circle cx="35.5" cy="10.5" r="4" stroke="white" strokeOpacity="0.9" strokeWidth="2" />
-      <rect x="9" y="28" width="6" height="10" rx="1.5" fill="white" fillOpacity="0.75" />
-      <rect x="21" y="20" width="6" height="18" rx="1.5" fill="white" fillOpacity="0.9" />
-      <rect x="33" y="14" width="6" height="24" rx="1.5" fill="white" />
+      <path
+        d="M4 6 H13 L24 31 L35 6 H44 L28 42 H20 Z"
+        fill={`url(#${id}-gold)`}
+        mask={`url(#${id}-notch)`}
+      />
     </svg>
   );
 }
 
-export function Logo({ className, iconOnly = false, size = 32 }: LogoProps) {
+export function Logo({ className, iconOnly = false, size = 32, tagline }: LogoProps) {
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <LogoMark size={size} />
       {!iconOnly && (
-        <span className="text-lg font-bold tracking-tight">
-          Void<span className="text-primary">2</span>Empire
+        <span className="flex flex-col leading-none">
+          <span className="text-lg font-bold tracking-tight">
+            Void
+            <span className="bg-linear-to-r from-brand-gold-400 to-brand-gold-600 bg-clip-text text-transparent">
+              2Empire
+            </span>
+          </span>
+          {tagline && (
+            <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              {tagline}
+            </span>
+          )}
         </span>
       )}
     </span>
