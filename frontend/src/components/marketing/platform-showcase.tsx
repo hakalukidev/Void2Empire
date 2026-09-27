@@ -120,7 +120,7 @@ function DeviceFrame() {
 
 export function PlatformShowcase() {
   return (
-    <section className="border-y border-white/10 bg-[var(--brand-night)] py-20 text-white">
+    <section className="night border-y border-white/10 bg-[var(--brand-night)] py-20 text-white">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 md:grid-cols-2">
         <div className="flex justify-center">
           <DeviceFrame />
@@ -157,7 +157,7 @@ export function PlatformShowcase() {
         </div>
       </div>
 
-      <p className="mx-auto mt-10 max-w-6xl px-4 text-center text-xs text-white/35">
+      <p className="mx-auto mt-10 max-w-6xl px-4 text-center text-xs text-white/60">
         Interface shown for illustration only — it is not a live trading screen.
       </p>
     </section>

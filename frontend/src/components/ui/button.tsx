@@ -20,7 +20,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost: "bg-transparent hover:bg-accent",
   outline: "border border-border bg-transparent hover:bg-accent",
   gradient:
-    "bg-linear-to-r from-brand-gold-300 to-brand-gold-600 text-primary-foreground shadow-lg shadow-brand-gold-500/20 hover:opacity-90",
+    "bg-linear-to-r from-[var(--gold-cta-from)] to-[var(--gold-cta-to)] text-[var(--gold-cta-fg)] shadow-lg shadow-brand-gold-500/20 hover:opacity-90",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

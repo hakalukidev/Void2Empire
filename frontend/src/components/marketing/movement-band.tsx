@@ -2,7 +2,7 @@ import { LogoMark } from "@/components/ui/logo";
 
 export function MovementBand() {
   return (
-    <section className="relative overflow-hidden border-y border-white/10 bg-[var(--brand-night)] py-20 text-white">
+    <section className="night relative overflow-hidden border-y border-white/10 bg-[var(--brand-night)] py-20 text-white">
       <svg
         viewBox="0 0 1200 200"
         preserveAspectRatio="none"

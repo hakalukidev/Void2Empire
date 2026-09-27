@@ -65,7 +65,7 @@ export function AdminSidebar() {
       <nav className="flex flex-col gap-5 p-3 flex-1">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label}>
-            <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+            <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               {section.label}
             </p>
             <div className="flex flex-col gap-0.5">

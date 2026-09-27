@@ -88,11 +88,11 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
         {/* Side selector */}
         <div className="grid grid-cols-2 gap-2">
           <button onClick={() => setSide("long")}
-            className={`py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-colors ${side === "long" ? "bg-success text-white" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+            className={`py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-colors ${side === "long" ? "bg-success text-success-fg" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
             <TrendingUp className="w-4 h-4" /> Long
           </button>
           <button onClick={() => setSide("short")}
-            className={`py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-colors ${side === "short" ? "bg-danger text-white" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+            className={`py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition-colors ${side === "short" ? "bg-danger text-danger-fg" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
             <TrendingDown className="w-4 h-4" /> Short
           </button>
         </div>
@@ -206,7 +206,7 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
 
         {/* Submit */}
         <Button
-          className={`w-full py-3 font-bold text-white ${side === "long" ? "bg-success hover:bg-success/90" : "bg-danger hover:bg-danger/90"}`}>
+          className={`w-full py-3 font-bold ${side === "long" ? "bg-success text-success-fg hover:bg-success/90" : "bg-danger text-danger-fg hover:bg-danger/90"}`}>
           {side === "long" ? "Open Long" : "Open Short"}
           {marginNum > 0 && ` — ${positionSize.toLocaleString()} USDT`}
         </Button>

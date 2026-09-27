@@ -10,9 +10,9 @@ const TX_TYPE_STYLE: Record<TxType, string> = {
   deposit:          "bg-success/10 text-success border-success/20",
   withdrawal:       "bg-warning/10 text-warning border-warning/20",
   trade_fee:        "bg-primary/10 text-primary border-primary/20",
-  referral_reward:  "bg-fuchsia-400/10 text-fuchsia-400 border-fuchsia-400/20",
-  p2p:              "bg-cyan-400/10 text-cyan-400 border-cyan-400/20",
-  funding:          "bg-amber-400/10 text-amber-400 border-amber-400/20",
+  referral_reward:  "bg-fuchsia-400/10 text-fuchsia-700 dark:text-fuchsia-400 border-fuchsia-400/20",
+  p2p:              "bg-cyan-400/10 text-cyan-700 dark:text-cyan-400 border-cyan-400/20",
+  funding:          "bg-amber-400/10 text-amber-700 dark:text-amber-400 border-amber-400/20",
 };
 
 const TX_TYPE_LABEL: Record<TxType, string> = {

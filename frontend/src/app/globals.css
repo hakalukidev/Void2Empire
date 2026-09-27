@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* next-themes writes .dark/.light on <html>; without this Tailwind v4 would keep
+   `dark:` bound to prefers-color-scheme, so it would ignore the in-app toggle. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #0b0f19;
   --foreground: #f8fafc;
@@ -20,7 +24,12 @@
 
   --success: #10b981;
   --warning: #d97706;
-  --danger: #ef4444;
+  --danger: #f87171;
+
+  /* Labels drawn on a solid --success / --danger fill. The hues above are tuned
+     for text, so white-on-green only clears AA in light mode. */
+  --success-fg: #0b0f19;
+  --danger-fg: #0b0f19;
 
   --brand-gold-200: #fbeec4;
   --brand-gold-300: #f5d98b;
@@ -31,6 +40,12 @@
 
   /* Marketing bands stay night-black in both themes; gold needs the dark ground. */
   --brand-night: #0b0f19;
+
+  /* White on gold can never clear AA, so the CTA gradient keeps a fixed bright
+     ramp with a night-navy label in both themes. */
+  --gold-cta-from: #f5d98b;
+  --gold-cta-to: #b8912c;
+  --gold-cta-fg: #0b0f19;
 }
 
 /* Light mode — toggled by next-themes via the .light class on <html> */
@@ -39,22 +54,27 @@
   --foreground: #0b0f19;
   --card: #ffffff;
   --card-foreground: #0b0f19;
-  --primary: #8a6512;
+  --primary: #7d5c11;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
   --secondary-foreground: #0b0f19;
   --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --muted-foreground: #5a6879;
   --accent: #e2e8f0;
   --accent-foreground: #0b0f19;
   --destructive: #dc2626;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #8a6512;
+  --ring: #7d5c11;
 
-  --success: #059669;
-  --warning: #b45309;
-  --danger: #dc2626;
+  /* PnL colours are read as small text on white *and* on a 10% tint of itself,
+     so they must clear 4.5:1 against both. */
+  --success: #065f46;
+  --warning: #92400e;
+  --danger: #b91c1c;
+
+  --success-fg: #ffffff;
+  --danger-fg: #ffffff;
 
   /* Gold needs to darken on white to stay legible as text and as a fill. */
   --brand-gold-300: #c08f22;
@@ -62,6 +82,31 @@
   --brand-gold-500: #96690f;
   --brand-gold-600: #8a6512;
   --brand-gold-700: #6b4e0d;
+}
+
+/* Night bands keep the same black backdrop in both themes, so the tokens used
+   inside them must stay on the dark ramp regardless of the app theme. */
+.night {
+  --foreground: #f8fafc;
+  --primary: #d4af37;
+  --primary-foreground: #0b0f19;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --ring: #d4af37;
+
+  --success: #10b981;
+  --warning: #d97706;
+  --danger: #f87171;
+
+  --success-fg: #0b0f19;
+  --danger-fg: #0b0f19;
+
+  --brand-gold-200: #fbeec4;
+  --brand-gold-300: #f5d98b;
+  --brand-gold-400: #e8c56a;
+  --brand-gold-500: #d4af37;
+  --brand-gold-600: #b8912c;
+  --brand-gold-700: #8c6d1f;
 }
 
 @theme inline {
@@ -84,6 +129,8 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-success-fg: var(--success-fg);
+  --color-danger-fg: var(--danger-fg);
   --color-brand-gold-200: var(--brand-gold-200);
   --color-brand-gold-300: var(--brand-gold-300);
   --color-brand-gold-400: var(--brand-gold-400);

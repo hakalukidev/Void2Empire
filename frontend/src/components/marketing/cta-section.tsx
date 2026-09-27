@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 export function CtaSection() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-20">
-      <div className="relative overflow-hidden rounded-2xl border border-brand-gold-500/25 bg-[var(--brand-night)] px-6 py-16 text-center text-white">
+      <div className="night relative overflow-hidden rounded-2xl border border-brand-gold-500/25 bg-[var(--brand-night)] px-6 py-16 text-center text-white">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.18),transparent_65%)]" />
         <div className="relative">
           <h2 className="text-3xl font-bold tracking-tight">Ready to start trading?</h2>

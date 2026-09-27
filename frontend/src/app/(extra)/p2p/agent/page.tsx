@@ -99,7 +99,7 @@ export default function AgentRegistrationPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <AgentBadgeDisplay badge={tier.badge} size="md" />
-                  <p className={`text-3xl font-bold mt-3 ${isPro ? "text-emerald-400" : "text-yellow-400"}`}>
+                  <p className={`text-3xl font-bold mt-3 ${isPro ? "text-emerald-700 dark:text-emerald-400" : "text-yellow-700 dark:text-yellow-400"}`}>
                     ${tier.fee.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground">One-time registration fee</p>
@@ -115,7 +115,7 @@ export default function AgentRegistrationPage() {
                     {f.ok
                       ? <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
                       : <XCircle className="w-4 h-4 text-muted-foreground/40 shrink-0 mt-0.5" />}
-                    <span className={f.ok ? "text-foreground" : "text-muted-foreground/50 line-through"}>{f.text}</span>
+                    <span className={f.ok ? "text-foreground" : "text-muted-foreground line-through"}>{f.text}</span>
                   </li>
                 ))}
               </ul>
@@ -129,7 +129,7 @@ export default function AgentRegistrationPage() {
               ) : (
                 <Button
                   onClick={() => setShowConfirm(tier.level)}
-                  className={`w-full font-bold py-3 ${isPro ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-yellow-500 hover:bg-yellow-600 text-black"}`}>
+                  className={`w-full font-bold py-3 ${isPro ? "bg-emerald-700 hover:bg-emerald-800 text-white" : "bg-yellow-500 hover:bg-yellow-600 text-black"}`}>
                   {isUpgrade ? `Upgrade to Level Pro` : `Apply for ${tier.name}`}
                 </Button>
               )}

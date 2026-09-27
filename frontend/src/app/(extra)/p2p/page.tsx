@@ -143,7 +143,7 @@ function PostCard({ post, isBuying }: { post: P2PPost; isBuying: boolean }) {
             ))}
           </div>
           <Link href={`/p2p/${post.id}`}>
-            <Button size="sm" className={`h-8 text-xs px-5 font-bold ${isBuying ? "bg-success hover:bg-success/90 text-white" : "bg-danger hover:bg-danger/90 text-white"}`}>
+            <Button size="sm" className={`h-8 text-xs px-5 font-bold ${isBuying ? "bg-success hover:bg-success/90 text-success-fg" : "bg-danger hover:bg-danger/90 text-danger-fg"}`}>
               {isBuying ? "Buy" : "Sell"}
             </Button>
           </Link>

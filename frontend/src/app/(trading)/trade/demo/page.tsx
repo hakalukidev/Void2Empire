@@ -109,7 +109,7 @@ export default function TradeDemoPage() {
               onClick={() => setSide("long")}
               className={`py-2 rounded-md text-sm font-bold border transition-all ${
                 side === "long"
-                  ? "bg-success text-white border-success shadow-[0_0_12px_rgba(34,197,94,0.3)]"
+                  ? "bg-success text-success-fg border-success shadow-[0_0_12px_rgba(34,197,94,0.3)]"
                   : "bg-success/5 text-success border-success/30 hover:bg-success/10"
               }`}
             >
@@ -119,7 +119,7 @@ export default function TradeDemoPage() {
               onClick={() => setSide("short")}
               className={`py-2 rounded-md text-sm font-bold border transition-all ${
                 side === "short"
-                  ? "bg-danger text-white border-danger shadow-[0_0_12px_rgba(239,68,68,0.3)]"
+                  ? "bg-danger text-danger-fg border-danger shadow-[0_0_12px_rgba(239,68,68,0.3)]"
                   : "bg-danger/5 text-danger border-danger/30 hover:bg-danger/10"
               }`}
             >
@@ -170,8 +170,8 @@ export default function TradeDemoPage() {
           <Button
             className={`w-full h-12 text-sm font-bold mt-auto ${
               side === "long"
-                ? "bg-success hover:bg-success/90 text-white"
-                : "bg-danger hover:bg-danger/90 text-white"
+                ? "bg-success hover:bg-success/90 text-success-fg"
+                : "bg-danger hover:bg-danger/90 text-danger-fg"
             }`}
           >
             {side === "long" ? <TrendingUp className="w-4 h-4 mr-2" /> : <TrendingDown className="w-4 h-4 mr-2" />}

@@ -146,7 +146,7 @@ export default function SpotTradePage({ params }: PageProps) {
                 <div key={tr.id} className="flex justify-between font-mono">
                   <span className={tr.side === "buy" ? "text-success" : "text-danger"}>{tr.price}</span>
                   <span className="text-muted-foreground">{tr.amount}</span>
-                  <span className="text-muted-foreground/60">{tr.time}</span>
+                  <span className="text-muted-foreground">{tr.time}</span>
                 </div>
               ))}
             </div>
@@ -166,7 +166,7 @@ export default function SpotTradePage({ params }: PageProps) {
               className={cn(
                 "py-2 rounded-md text-sm font-bold border transition-all",
                 side === "buy"
-                  ? "bg-success text-white border-success"
+                  ? "bg-success text-success-fg border-success"
                   : "bg-success/5 text-success border-success/30 hover:bg-success/10"
               )}
             >
@@ -177,7 +177,7 @@ export default function SpotTradePage({ params }: PageProps) {
               className={cn(
                 "py-2 rounded-md text-sm font-bold border transition-all",
                 side === "sell"
-                  ? "bg-danger text-white border-danger"
+                  ? "bg-danger text-danger-fg border-danger"
                   : "bg-danger/5 text-danger border-danger/30 hover:bg-danger/10"
               )}
             >
@@ -220,7 +220,7 @@ export default function SpotTradePage({ params }: PageProps) {
           <Button
             onClick={onSubmit}
             disabled={!canSubmit}
-            className={cn("h-12 w-full font-bold text-white", side === "buy" ? "bg-success hover:bg-success/90" : "bg-danger hover:bg-danger/90")}
+            className={cn("h-12 w-full font-bold", side === "buy" ? "bg-success text-success-fg hover:bg-success/90" : "bg-danger text-danger-fg hover:bg-danger/90")}
           >
             {t("spot.place_order")}
           </Button>

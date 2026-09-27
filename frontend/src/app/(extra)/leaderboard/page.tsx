@@ -36,7 +36,7 @@ const CATEGORIES: { key: Category; label: string }[] = [
 
 const RANK_MEDAL_COLOR: Record<number, string> = {
   1: "text-brand-gold-400",
-  2: "text-slate-400",
+  2: "text-muted-foreground",
   3: "text-amber-600",
 };
 
@@ -120,7 +120,7 @@ export default function LeaderboardPage() {
           <p className="font-bold truncate w-full">{top3[0].name}</p>
           <p className="text-xs text-muted-foreground mt-1"># 1</p>
           <p className="text-success font-bold text-lg mt-1">+${top3[0].pnl.toLocaleString()}</p>
-          <p className="text-xs text-success/70">+{top3[0].pnlPct}%</p>
+          <p className="text-xs text-success">+{top3[0].pnlPct}%</p>
         </Card>
 
         {/* 3rd place */}

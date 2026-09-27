@@ -25,7 +25,7 @@ const rows: {
 
 export function LiveTicker() {
   return (
-    <section className="border-y border-white/10 bg-[var(--brand-night)] py-8 text-white">
+    <section className="night border-y border-white/10 bg-[var(--brand-night)] py-8 text-white">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-2 px-4">
         <h2 className="text-xl font-bold">Markets</h2>
         <span className="rounded-full border border-brand-gold-500/40 bg-brand-gold-500/10 px-3 py-1 text-xs font-medium text-brand-gold-400">
@@ -48,9 +48,11 @@ export function LiveTicker() {
                   <p className="mt-0.5 font-mono text-base font-bold tabular-nums text-white">
                     ${row.price}
                   </p>
+                  {/* Fixed bright values: this band stays night-black in both themes,
+                      so the theme-reactive PnL tokens would be too dark to read here. */}
                   <p
                     className={`mt-0.5 text-xs font-semibold tabular-nums ${
-                      up ? "text-success" : "text-danger"
+                      up ? "text-emerald-400" : "text-red-400"
                     }`}
                   >
                     {up ? "▲" : "▼"} {Math.abs(row.change).toFixed(2)}%
