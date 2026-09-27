@@ -26,7 +26,10 @@ export default function LoginPage() {
     try {
       const user = await loginUser(data);
       setUser(user);
-      router.push("/dashboard");
+      // Honor ?next= set by the /admin auth guard; only allow same-origin paths.
+      const next = new URLSearchParams(window.location.search).get("next");
+      const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+      router.push(safeNext);
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
       toast.error(message ?? "Could not log in");
@@ -50,6 +53,11 @@ export default function LoginPage() {
           {errors.password && (
             <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>
           )}
+        </div>
+        <div className="text-right">
+          <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+            Forgot password?
+          </Link>
         </div>
         <Button type="submit" disabled={isSubmitting} className="w-full">
           Log in

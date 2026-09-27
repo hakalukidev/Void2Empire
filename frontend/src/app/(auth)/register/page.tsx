@@ -37,7 +37,9 @@ export default function RegisterPage() {
         password: data.password,
       });
       setUser(user);
-      router.push("/dashboard");
+      // Route to verification (REQ-008). The verify page is skippable, so this
+      // does not make verification mandatory — that decision is DR-032 blocked.
+      router.push(`/verify?email=${encodeURIComponent(data.email)}`);
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
       toast.error(message ?? "Could not create account");

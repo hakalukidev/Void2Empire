@@ -1,43 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useLocaleStore } from "@/store/locale-store";
 import { BarChart2, TrendingUp, TrendingDown } from "lucide-react";
+import { addDecimalStrings, compareDecimalStrings } from "@/lib/utils/decimal";
+import {
+  fetchOpenPositions,
+  fetchPositionsSummary,
+  FuturesPosition,
+} from "@/services/futures-positions.service";
 
-interface Position {
-  id: string;
-  pair: string;
-  side: "Long" | "Short";
-  leverage: number;
-  entryPrice: number;
-  markPrice: number;
-  size: number;
-  margin: number;
-  pnl: number;
-  pnlPct: number;
-  liqPrice: number;
-}
-
-const MOCK_POSITIONS: Position[] = [
-  {
-    id: "POS-001", pair: "BTC-USDT", side: "Long",  leverage: 10,
-    entryPrice: 63000, markPrice: 65432, size: 0.1,
-    margin: 630, pnl: 243.2, pnlPct: 3.86, liqPrice: 57200,
-  },
-  {
-    id: "POS-002", pair: "ETH-USDT", side: "Short", leverage: 5,
-    entryPrice: 3500, markPrice: 3456.78, size: 0.5,
-    margin: 350, pnl: 21.6, pnlPct: 1.24, liqPrice: 3850,
-  },
-];
+const sign = (value: string) => (compareDecimalStrings(value, "0") >= 0 ? "+" : "");
+const isNeg = (value: string) => compareDecimalStrings(value, "0") < 0;
 
 export default function PositionsPage() {
-  const { t } = useLocaleStore();
+  const [positions, setPositions] = useState<FuturesPosition[]>([]);
+  const [accountEquity, setAccountEquity] = useState("0.00");
 
-  const totalPnl = MOCK_POSITIONS.reduce((sum, p) => sum + p.pnl, 0);
-  const totalMargin = MOCK_POSITIONS.reduce((sum, p) => sum + p.margin, 0);
+  useEffect(() => {
+    fetchOpenPositions().then(setPositions);
+    fetchPositionsSummary().then((s) => setAccountEquity(s.accountEquity));
+  }, []);
+
+  const totalPnl = addDecimalStrings(...positions.map((p) => p.pnl));
+  const totalMargin = addDecimalStrings(...positions.map((p) => p.margin));
 
   return (
     <div className="p-6 space-y-6">
@@ -50,21 +37,21 @@ export default function PositionsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 bg-card border-border">
           <p className="text-xs text-muted-foreground mb-1">Open Positions</p>
-          <p className="text-2xl font-bold">{MOCK_POSITIONS.length}</p>
+          <p className="text-2xl font-bold">{positions.length}</p>
         </Card>
         <Card className="p-4 bg-card border-border">
           <p className="text-xs text-muted-foreground mb-1">Total Margin Used</p>
-          <p className="text-2xl font-bold">${totalMargin.toFixed(2)}</p>
+          <p className="text-2xl font-bold">${totalMargin}</p>
         </Card>
         <Card className="p-4 bg-card border-border border-l-4 border-l-success">
           <p className="text-xs text-muted-foreground mb-1">Unrealized PnL</p>
-          <p className={`text-2xl font-bold ${totalPnl >= 0 ? "text-success" : "text-danger"}`}>
-            {totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}
+          <p className={`text-2xl font-bold ${isNeg(totalPnl) ? "text-danger" : "text-success"}`}>
+            {sign(totalPnl)}${totalPnl}
           </p>
         </Card>
         <Card className="p-4 bg-card border-border">
           <p className="text-xs text-muted-foreground mb-1">Account Equity</p>
-          <p className="text-2xl font-bold">${(10000 + totalPnl).toFixed(2)}</p>
+          <p className="text-2xl font-bold">${accountEquity}</p>
         </Card>
       </div>
 
@@ -86,13 +73,13 @@ export default function PositionsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {MOCK_POSITIONS.length === 0 ? (
+              {positions.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="px-6 py-12 text-center text-muted-foreground">
                     No open positions.
                   </td>
                 </tr>
-              ) : MOCK_POSITIONS.map((pos) => (
+              ) : positions.map((pos) => (
                 <tr key={pos.id} className="hover:bg-secondary/20 transition-colors">
                   <td className="px-6 py-4 font-bold">{pos.pair}</td>
                   <td className={`px-6 py-4 font-semibold flex items-center gap-1 ${pos.side === "Long" ? "text-success" : "text-danger"}`}>
@@ -105,14 +92,14 @@ export default function PositionsPage() {
                       {pos.leverage}x
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-mono">${pos.entryPrice.toLocaleString()}</td>
-                  <td className="px-6 py-4 font-mono">${pos.markPrice.toLocaleString()}</td>
-                  <td className="px-6 py-4 font-mono text-danger">${pos.liqPrice.toLocaleString()}</td>
-                  <td className="px-6 py-4 font-mono">${pos.margin.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-mono">${pos.entryPrice}</td>
+                  <td className="px-6 py-4 font-mono">${pos.markPrice}</td>
+                  <td className="px-6 py-4 font-mono text-danger">${pos.liqPrice}</td>
+                  <td className="px-6 py-4 font-mono">${pos.margin}</td>
                   <td className="px-6 py-4">
-                    <div className={pos.pnl >= 0 ? "text-success" : "text-danger"}>
-                      <div className="font-bold">{pos.pnl >= 0 ? "+" : ""}${pos.pnl.toFixed(2)}</div>
-                      <div className="text-xs opacity-70">{pos.pnlPct >= 0 ? "+" : ""}{pos.pnlPct.toFixed(2)}%</div>
+                    <div className={isNeg(pos.pnl) ? "text-danger" : "text-success"}>
+                      <div className="font-bold">{sign(pos.pnl)}${pos.pnl}</div>
+                      <div className="text-xs opacity-70">{sign(pos.pnlPct)}{pos.pnlPct}%</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">

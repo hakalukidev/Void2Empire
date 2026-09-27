@@ -15,6 +15,7 @@ const columns = [
     title: "Support",
     links: [
       { href: "/faq", label: "FAQ" },
+      { href: "/announcements", label: "Announcements" },
       { href: "/support", label: "Contact support" },
     ],
   },

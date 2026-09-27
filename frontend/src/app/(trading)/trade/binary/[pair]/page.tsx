@@ -6,8 +6,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocaleStore } from "@/store/locale-store";
+import { useAccountStore } from "@/store/account-store";
 import { TradingChart } from "@/components/ui/trading-chart";
-import { TrendingUp, TrendingDown, Clock, Activity } from "lucide-react";
+import { DemoDisclaimer } from "@/components/ui/demo-disclaimer";
+import { TrendingUp, TrendingDown, Clock, Activity, FlaskConical } from "lucide-react";
 
 const EXPIRATION_TIMES = [
   { label: "1m", value: 60 },
@@ -16,11 +18,23 @@ const EXPIRATION_TIMES = [
   { label: "15m", value: 900 },
 ];
 
+const MOCK_CHART_DATA = [
+  { time: "2024-01-01", value: 45000 },
+  { time: "2024-01-02", value: 46000 },
+  { time: "2024-01-03", value: 45500 },
+  { time: "2024-01-04", value: 47000 },
+  { time: "2024-01-05", value: 48000 },
+];
+
 export default function BinaryTradePage() {
   const { t } = useLocaleStore();
   const params = useParams();
   const pair = typeof params.pair === 'string' ? params.pair.replace('%2D', '-') : "BTC-USDT";
-  
+
+  const mode = useAccountStore((s) => s.mode);
+  const demoBalance = useAccountStore((s) => s.demoBalance);
+  const isDemo = mode === "demo";
+
   const [amount, setAmount] = useState("10");
   const [expiration, setExpiration] = useState(EXPIRATION_TIMES[0].value);
   
@@ -30,14 +44,30 @@ export default function BinaryTradePage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
+      {/* REQ-051 verbatim disclaimer — required on all demo views (Sec46 rule #41) */}
+      {isDemo && <DemoDisclaimer />}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold tracking-tight">{pair} <span className="text-sm font-normal text-muted-foreground ml-2">Binary</span></h1>
-          <div className="flex items-center gap-2 px-3 py-1 bg-success/10 text-success rounded-full text-sm font-medium border border-success/20">
-            <Activity className="w-4 h-4" />
-            Live
-          </div>
+          {isDemo ? (
+            <div className="flex items-center gap-2 px-3 py-1 bg-warning/10 text-warning rounded-full text-sm font-medium border border-warning/30">
+              <FlaskConical className="w-4 h-4" />
+              {t("common.demo_balance")}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1 bg-success/10 text-success rounded-full text-sm font-medium border border-success/20">
+              <Activity className="w-4 h-4" />
+              Live
+            </div>
+          )}
         </div>
+        {isDemo && (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">{t("demo.balance")}:</span>
+            <span className="font-bold text-warning">${demoBalance.toLocaleString()}.00</span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 gap-4 overflow-hidden flex-col lg:flex-row">
@@ -53,7 +83,7 @@ export default function BinaryTradePage() {
                   <button className="px-2 py-1 rounded text-muted-foreground hover:text-foreground">1m</button>
                 </div>
              </div>
-             <TradingChart symbol={pair} />
+             <TradingChart data={MOCK_CHART_DATA} />
           </Card>
         </div>
 

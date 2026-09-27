@@ -7,10 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocaleStore } from "@/store/locale-store";
 import { TradingChart } from "@/components/ui/trading-chart";
-import { FlaskConical, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
+import { DemoDisclaimer } from "@/components/ui/demo-disclaimer";
+import { FlaskConical, TrendingUp, TrendingDown } from "lucide-react";
 
 const DEMO_PAIRS = ["BTC-USDT", "ETH-USDT", "SOL-USDT", "BNB-USDT", "XRP-USDT"];
 const DEMO_BALANCE = 10000;
+
+const DEMO_CHART_DATA = [
+  { time: "2024-01-01", value: 45000 },
+  { time: "2024-01-02", value: 46000 },
+  { time: "2024-01-03", value: 45500 },
+  { time: "2024-01-04", value: 47000 },
+  { time: "2024-01-05", value: 48000 },
+];
 
 export default function TradeDemoPage() {
   const { t } = useLocaleStore();
@@ -26,14 +35,17 @@ export default function TradeDemoPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
+      {/* REQ-051 verbatim disclaimer — must be preserved exactly on all demo views */}
+      <DemoDisclaimer />
+
       {/* Demo Mode Banner */}
       <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-warning/10 border border-warning/30 rounded-lg">
         <div className="flex items-center gap-2 text-warning text-sm font-medium">
-          <AlertTriangle className="w-4 h-4 shrink-0" />
-          You are in <span className="font-bold">DEMO MODE</span>. All trades use virtual funds and have no real monetary value.
+          <FlaskConical className="w-4 h-4 shrink-0" />
+          {t("demo.mode_banner")}
         </div>
         <Link href="/trade/futures/BTC-USDT">
-          <Button size="sm" variant="primary" className="text-xs shrink-0">Switch to Live Trading</Button>
+          <Button size="sm" variant="primary" className="text-xs shrink-0">{t("demo.switch_live")}</Button>
         </Link>
       </div>
 
@@ -41,14 +53,14 @@ export default function TradeDemoPage() {
       <div className="flex items-center gap-6 px-4 py-2 bg-card border border-border rounded-lg text-sm">
         <div className="flex items-center gap-2">
           <FlaskConical className="w-4 h-4 text-warning" />
-          <span className="text-muted-foreground">Demo Balance:</span>
+          <span className="text-muted-foreground">{t("demo.balance")}:</span>
           <span className="font-bold text-warning">${DEMO_BALANCE.toLocaleString()}.00</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Unrealized PnL:</span>
+          <span className="text-muted-foreground">{t("demo.unrealized_pnl")}:</span>
           <span className="font-bold text-success">+$0.00</span>
         </div>
-        <Button size="sm" variant="secondary" className="ml-auto text-xs">Reset Demo Account</Button>
+        <Button size="sm" variant="secondary" className="ml-auto text-xs">{t("demo.reset")}</Button>
       </div>
 
       <div className="flex flex-1 gap-4 overflow-hidden flex-col lg:flex-row">
@@ -70,7 +82,7 @@ export default function TradeDemoPage() {
             ))}
           </div>
           <Card className="flex-1 bg-card border-border overflow-hidden">
-            <TradingChart symbol={pair} />
+            <TradingChart data={DEMO_CHART_DATA} />
           </Card>
         </div>
 
