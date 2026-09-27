@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
           <Input placeholder="Search by name or email..." className="pl-9 bg-secondary/30" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as UserStatus | "all")}
           className="px-3 py-2 rounded-md border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
           <option value="all">All Statuses</option>
           <option value="active">Active</option>
@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
           <option value="pending_verification">Pending Verification</option>
         </select>
 
-        <select value={kycFilter} onChange={(e) => setKycFilter(e.target.value as any)}
+        <select value={kycFilter} onChange={(e) => setKycFilter(e.target.value as KycStatus | "all")}
           className="px-3 py-2 rounded-md border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
           <option value="all">All KYC</option>
           <option value="verified">Verified</option>

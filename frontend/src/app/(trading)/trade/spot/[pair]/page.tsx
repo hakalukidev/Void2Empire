@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,16 +51,19 @@ export default function SpotTradePage({ params }: PageProps) {
   const [price, setPrice] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const load = useCallback(async () => {
-    setTicker(await fetchSpotTicker(marketId));
-    setBook(await fetchOrderbook(marketId));
-    setTrades(await fetchRecentTrades(marketId));
-    setOrders(await fetchOpenOrders());
-  }, [marketId]);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    Promise.all([
+      fetchSpotTicker(marketId),
+      fetchOrderbook(marketId),
+      fetchRecentTrades(marketId),
+      fetchOpenOrders(),
+    ]).then(([nextTicker, nextBook, nextTrades, nextOrders]) => {
+      setTicker(nextTicker);
+      setBook(nextBook);
+      setTrades(nextTrades);
+      setOrders(nextOrders);
+    });
+  }, [marketId]);
 
   const quantityValid = isPositiveDecimal(quantity);
   const priceValid = type === "market" || isPositiveDecimal(price);

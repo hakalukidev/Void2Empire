@@ -16,7 +16,6 @@ export default function P2PMarketplacePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
     getPosts(tab).then(data => { setPosts(data); setLoading(false); });
   }, [tab]);
 
@@ -71,11 +70,11 @@ export default function P2PMarketplacePage() {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 bg-secondary/30 border border-border rounded-lg w-fit">
-        <button onClick={() => setTab("sell")}
+        <button onClick={() => { if (tab === "sell") return; setLoading(true); setTab("sell"); }}
           className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === "sell" ? "bg-success/15 text-success border border-success/20" : "text-muted-foreground hover:text-foreground"}`}>
           Buy USDT
         </button>
-        <button onClick={() => setTab("buy")}
+        <button onClick={() => { if (tab === "buy") return; setLoading(true); setTab("buy"); }}
           className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === "buy" ? "bg-danger/15 text-danger border border-danger/20" : "text-muted-foreground hover:text-foreground"}`}>
           Sell USDT
         </button>

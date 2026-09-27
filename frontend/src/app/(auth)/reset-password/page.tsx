@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAxiosError } from "axios";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/validators/auth";
 import { resetPassword } from "@/lib/api/auth";
@@ -13,22 +13,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
-  const [token, setToken] = useState("");
+  const token = useSearchParams().get("token") ?? "";
 
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordInput>({ resolver: zodResolver(resetPasswordSchema) });
-
-  useEffect(() => {
-    const urlToken = new URLSearchParams(window.location.search).get("token") ?? "";
-    setToken(urlToken);
-    setValue("token", urlToken);
-  }, [setValue]);
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { token },
+  });
 
   const onSubmit = async (data: ResetPasswordInput) => {
     try {
@@ -78,5 +74,19 @@ export default function ResetPasswordPage() {
         </form>
       )}
     </Card>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card>
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </Card>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

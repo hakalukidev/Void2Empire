@@ -219,7 +219,7 @@ export default function AdminTradingSettingsPage() {
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Funding Direction</label>
               <select 
                 value={editDirection} 
-                onChange={e => setEditDirection(e.target.value as any)}
+                onChange={e => setEditDirection(e.target.value as "long_pays_short" | "short_pays_long")}
                 className="w-full h-10 px-3 rounded-md bg-secondary/30 border border-border text-sm"
               >
                 <option value="long_pays_short">Long Pays Short</option>
