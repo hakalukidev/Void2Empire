@@ -1,0 +1,80 @@
+name: void2empire
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    depends_on:
+      - frontend
+      - backend
+
+  frontend:
+    # CI builds and pushes this tag; the VPS only pulls it. IMAGE_TAG is
+    # pinned in .env by the deploy job, so a manual `docker compose up` here
+    # brings up the same version that is already running.
+    image: ghcr.io/hakalukidev/void2empire-frontend:${IMAGE_TAG:-latest}
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: https://${APP_DOMAIN}/api
+        NEXT_PUBLIC_WS_URL: wss://${APP_DOMAIN}/ws
+    restart: unless-stopped
+    expose:
+      - "3000"
+
+  backend:
+    image: ghcr.io/hakalukidev/void2empire-backend:${IMAGE_TAG:-latest}
+    build:
+      context: ./backend
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      APP_ENV: production
+      PORT: "8080"
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_ORIGIN: https://${APP_DOMAIN}
+      COOKIE_DOMAIN: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redisdata:/data
+
+volumes:
+  pgdata:
+  redisdata:
+  caddy_data:
+  caddy_config:

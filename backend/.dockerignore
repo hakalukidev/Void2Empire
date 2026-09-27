@@ -1,0 +1,7 @@
+.env
+.env.*
+!.env.example
+*.log
+bin/
+tmp/
+README.md

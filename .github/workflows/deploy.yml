@@ -1,0 +1,112 @@
+name: Deploy
+
+# Triggered by hand, never by a push. Images are built on merge to main by
+# build.yml and wait in GHCR until someone runs this.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to deploy (a commit SHA). Blank deploys the head of the branch above. An older SHA rolls back."
+        required: false
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  VPS_HOST: 187.7.17.199
+  VPS_USER: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Records the deployment and its URL under the repo's Environments tab.
+    # A required-reviewer rule here would be the stronger gate, but that needs
+    # a paid plan on a private repo -- hence the manual trigger instead.
+    environment:
+      name: production
+      url: https://void2empire.com
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Open an SSH session to the VPS
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Pinned host key -- accept-new would trust whatever answers first.
+          # Regenerate with ssh-keyscan if the VPS is ever rebuilt.
+          echo '187.7.17.199 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJs+K7v9zDrP6v105sSq1Tizhglwk3/pVdCNUH5q09rZ' > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Pull the new images and restart
+        env:
+          IMAGE_TAG: ${{ inputs.tag || github.sha }}
+          GHCR_USER: ${{ github.actor }}
+          # Scoped to this run and expires with it, so nothing long-lived is
+          # left behind on the server.
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Secrets go down the encrypted stdin stream, not on the ssh
+          # command line, where they would show up in ps on the VPS.
+          {
+            printf 'IMAGE_TAG=%q GHCR_USER=%q GHCR_TOKEN=%q\n' \
+              "$IMAGE_TAG" "$GHCR_USER" "$GHCR_TOKEN"
+            printf 'export IMAGE_TAG GHCR_USER GHCR_TOKEN\n'
+            cat <<'REMOTE'
+          set -euo pipefail
+          cd /opt/void2empire
+
+          # The compose file itself may have changed in this commit.
+          git fetch --quiet origin main
+          git checkout --quiet -B main origin/main
+
+          # Pin the tag so a later manual `docker compose up` on the box does
+          # not silently jump to :latest.
+          if grep -q '^IMAGE_TAG=' .env; then
+            sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=${IMAGE_TAG}|" .env
+          else
+            printf 'IMAGE_TAG=%s\n' "$IMAGE_TAG" >> .env
+          fi
+
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          # Only the app images: pulling postgres or redis here would upgrade
+          # them on an unrelated deploy.
+          docker compose pull backend frontend
+          docker compose up -d
+          docker logout ghcr.io >/dev/null
+
+          docker image prune -f >/dev/null
+          docker compose ps --format 'table {{.Service}}\t{{.Status}}'
+          REMOTE
+          } | ssh -i ~/.ssh/id_deploy "$VPS_USER@$VPS_HOST" bash -s
+
+      - name: Wait for the stack to report healthy
+        run: |
+          ssh -i ~/.ssh/id_deploy "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          cd /opt/void2empire
+          for i in $(seq 1 30); do
+            unhealthy=$(docker compose ps --format '{{.Service}} {{.Health}}' \
+              | awk '$2 != "healthy" && $2 != "" { print $1 }')
+            [ -z "$unhealthy" ] && echo "all healthy" && exit 0
+            echo "waiting on: $unhealthy"
+            sleep 5
+          done
+          echo "services did not become healthy in time" >&2
+          docker compose logs --tail 50 >&2
+          exit 1
+          REMOTE
+
+      - name: Smoke test from outside
+        run: |
+          set -euo pipefail
+          health=$(curl -fsS --retry 5 --retry-delay 3 https://void2empire.com/api/health)
+          echo "api: $health"
+          [ "$health" = '{"status":"ok"}' ]
+          code=$(curl -fsS -o /dev/null -w '%{http_code}' https://void2empire.com)
+          echo "frontend: $code"
+          [ "$code" = "200" ]
