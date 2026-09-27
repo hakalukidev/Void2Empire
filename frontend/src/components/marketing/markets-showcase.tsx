@@ -16,6 +16,9 @@ export function MarketsShowcase() {
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
           Forex, crypto, stocks, and commodities — all from the same dashboard.
         </p>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+          Markets shown are illustrative; the pairs listed in the app are the current selection.
+        </p>
       </div>
 
       <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

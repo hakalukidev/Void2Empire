@@ -2,7 +2,7 @@ const steps = [
   {
     step: "01",
     title: "Create your account",
-    description: "Sign up with your email and a few details. Verification takes seconds.",
+    description: "Sign up with your email and phone, then confirm both with the codes we send.",
   },
   {
     step: "02",
@@ -13,7 +13,7 @@ const steps = [
   {
     step: "03",
     title: "Start trading",
-    description: "Trade futures with leverage, or binary options with a fixed payout.",
+    description: "Trade futures with leverage, or binary options with a payout shown before you trade.",
   },
 ];
 

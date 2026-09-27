@@ -8,8 +8,8 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(168,85,247,0.25),transparent_60%)]" />
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 md:grid-cols-2 md:py-28">
         <div className="relative z-10 text-center md:text-left">
-          <span className="text-sm font-medium text-white/50">
-            Futures &amp; Binary Options, in one platform
+          <span className="text-sm font-medium uppercase tracking-[0.3em] text-white/50">
+            Trade · Grow · Rule
           </span>
           <h1 className="mt-4 text-4xl font-extrabold uppercase leading-tight tracking-tight md:text-6xl">
             Trade the markets
@@ -19,9 +19,8 @@ export function Hero() {
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-white/60 md:mx-0">
-            Real-time charts, leveraged futures, and fixed-payout binary options across forex,
-            crypto, stocks, and commodities. Practice risk-free with a $10,000 demo account before
-            you trade live.
+            Chart-based spot, futures and binary trading. Practise on a $10,000 demo account —
+            virtual funds, no real money — before you trade live.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row md:justify-start">
             <Link href="/register">

@@ -12,7 +12,7 @@ const features = [
     icon: Timer,
     title: "Binary options",
     description:
-      "Predict up or down with expiries from 1 minute to 24 hours and a transparent, fixed payout.",
+      "Predict UP or DOWN over an expiry you choose, with the potential payout shown before you trade.",
   },
   {
     icon: ArrowUpDown,
@@ -34,8 +34,8 @@ const features = [
   },
   {
     icon: Clock3,
-    title: "24/7 support",
-    description: "A dedicated support channel for urgent trading, wallet, or account issues.",
+    title: "Support tickets",
+    description: "Open a ticket for trading, wallet, or account issues and follow it to resolution.",
   },
 ];
 
