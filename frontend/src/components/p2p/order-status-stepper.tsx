@@ -48,7 +48,7 @@ export function OrderStatusStepper({ status }: OrderStatusStepperProps) {
           <div key={step.status} className="flex items-center">
             <div className="flex flex-col items-center gap-1.5">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
-                isDone   ? "bg-success border-success text-white" :
+                isDone   ? "bg-success border-success text-success-fg" :
                 isActive ? "bg-primary/20 border-primary text-primary animate-pulse" :
                            "bg-secondary border-border text-muted-foreground"
               }`}>

@@ -52,7 +52,7 @@ export default function AdminFundingSystemPage() {
         <h1 className="text-3xl font-bold tracking-tight">Funding System (WA-1)</h1>
         <p className="mt-1 text-muted-foreground">
           Manage the 10× funding ratio, purchase presets, bounds, and the profit-milestone reward
-          table. <span className="text-muted-foreground/70">Permission: funding.manage</span>
+          table. <span>Permission: funding.manage</span>
         </p>
       </div>
 

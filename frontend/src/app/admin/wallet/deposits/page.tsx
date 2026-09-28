@@ -115,7 +115,7 @@ export default function AdminDepositsPage() {
                   <td className="px-5 py-4 text-right">
                     {d.status === "pending" || d.status === "on_hold" ? (
                       <div className="flex justify-end gap-2">
-                        <Button size="sm" className="h-7 text-xs bg-success hover:bg-success/90 text-white" onClick={() => approve(d.id)}>Approve</Button>
+                        <Button size="sm" className="h-7 text-xs bg-success hover:bg-success/90 text-success-fg" onClick={() => approve(d.id)}>Approve</Button>
                         <Button size="sm" variant="secondary" className="h-7 text-xs text-danger border-danger/30 hover:bg-danger/10" onClick={() => reject(d.id)}>Reject</Button>
                       </div>
                     ) : (

@@ -2,7 +2,7 @@ const steps = [
   {
     step: "01",
     title: "Create your account",
-    description: "Sign up with your email and a few details. Verification takes seconds.",
+    description: "Sign up with your email and phone, then confirm both with the codes we send.",
   },
   {
     step: "02",
@@ -13,7 +13,7 @@ const steps = [
   {
     step: "03",
     title: "Start trading",
-    description: "Trade futures with leverage, or binary options with a fixed payout.",
+    description: "Trade futures with leverage, or binary options with a payout shown before you trade.",
   },
 ];
 
@@ -28,7 +28,7 @@ export function HowItWorks() {
         <div className="mt-12 grid gap-8 md:grid-cols-3">
           {steps.map((item) => (
             <div key={item.step}>
-              <span className="text-4xl font-bold text-primary/40">{item.step}</span>
+              <span className="text-4xl font-bold text-primary">{item.step}</span>
               <h3 className="mt-3 text-lg font-semibold">{item.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
             </div>

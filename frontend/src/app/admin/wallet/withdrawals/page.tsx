@@ -114,7 +114,7 @@ export default function AdminWithdrawalsPage() {
                   <td className="px-5 py-4 text-right">
                     {w.status === "pending" ? (
                       <div className="flex justify-end gap-2">
-                        <Button size="sm" className="h-7 text-xs bg-success hover:bg-success/90 text-white" onClick={() => approve(w.id)}>Approve</Button>
+                        <Button size="sm" className="h-7 text-xs bg-success hover:bg-success/90 text-success-fg" onClick={() => approve(w.id)}>Approve</Button>
                         <Button size="sm" variant="secondary" className="h-7 text-xs text-danger border-danger/30 hover:bg-danger/10" onClick={() => reject(w.id)}>Reject</Button>
                       </div>
                     ) : <span className="text-xs text-muted-foreground">—</span>}

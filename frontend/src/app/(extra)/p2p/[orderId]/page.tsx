@@ -154,7 +154,7 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
           <div className="space-y-2">
             {order.status === "pending" && isBuyer && (
               <>
-                <Button onClick={handleMarkPaid} disabled={submitting} className="w-full bg-success hover:bg-success/90 text-white font-bold gap-2">
+                <Button onClick={handleMarkPaid} disabled={submitting} className="w-full bg-success hover:bg-success/90 text-success-fg font-bold gap-2">
                   <CheckCircle className="w-4 h-4" /> I Have Paid
                 </Button>
                 <Button onClick={handleCancel} variant="secondary" className="w-full text-danger border-danger/20 hover:bg-danger/10 gap-2">
@@ -165,7 +165,7 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
 
             {order.status === "paid" && !isBuyer && (
               <>
-                <Button onClick={handleRelease} disabled={submitting} className="w-full bg-success hover:bg-success/90 text-white font-bold gap-2">
+                <Button onClick={handleRelease} disabled={submitting} className="w-full bg-success hover:bg-success/90 text-success-fg font-bold gap-2">
                   <CheckCircle className="w-4 h-4" /> Release USDT
                 </Button>
                 {/* IMPORTANT: Seller CANNOT cancel once buyer marks paid — only dispute is allowed */}

@@ -119,7 +119,7 @@ function PostCard({ post, isBuying }: { post: P2PPost; isBuying: boolean }) {
               <AgentBadgeDisplay badge={post.creatorBadge} />
             </div>
             <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+              <Star className="w-3 h-3 text-brand-gold-400 fill-brand-gold-400" />
               <span>{post.completedTrades} completed</span>
             </div>
           </div>
@@ -143,7 +143,7 @@ function PostCard({ post, isBuying }: { post: P2PPost; isBuying: boolean }) {
             ))}
           </div>
           <Link href={`/p2p/${post.id}`}>
-            <Button size="sm" className={`h-8 text-xs px-5 font-bold ${isBuying ? "bg-success hover:bg-success/90 text-white" : "bg-danger hover:bg-danger/90 text-white"}`}>
+            <Button size="sm" className={`h-8 text-xs px-5 font-bold ${isBuying ? "bg-success hover:bg-success/90 text-success-fg" : "bg-danger hover:bg-danger/90 text-danger-fg"}`}>
               {isBuying ? "Buy" : "Sell"}
             </Button>
           </Link>

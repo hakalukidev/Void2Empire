@@ -138,11 +138,11 @@ export default function BinaryTradePage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mt-auto pt-6">
-             <Button className="h-20 bg-success hover:bg-success/90 text-white text-lg font-bold flex flex-col gap-1 border-b-4 border-success-focus active:border-b-0 active:translate-y-1 transition-all">
+             <Button className="h-20 bg-success hover:bg-success/90 text-success-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-success-focus active:border-b-0 active:translate-y-1 transition-all">
                 <TrendingUp className="w-6 h-6" />
                 {t("binary.up")}
              </Button>
-             <Button className="h-20 bg-danger hover:bg-danger/90 text-white text-lg font-bold flex flex-col gap-1 border-b-4 border-danger-focus active:border-b-0 active:translate-y-1 transition-all">
+             <Button className="h-20 bg-danger hover:bg-danger/90 text-danger-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-danger-focus active:border-b-0 active:translate-y-1 transition-all">
                 <TrendingDown className="w-6 h-6" />
                 {t("binary.down")}
              </Button>

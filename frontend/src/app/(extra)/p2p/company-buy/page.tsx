@@ -34,7 +34,7 @@ export default function CompanyDirectBuyPage() {
           </div>
           <h1 className="text-2xl font-bold">Access Restricted</h1>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Company Direct USDT Purchase is an <strong className="text-emerald-400">exclusive privilege for Level Pro Agents</strong> only.
+            Company Direct USDT Purchase is an <strong className="text-emerald-700 dark:text-emerald-400">exclusive privilege for Level Pro Agents</strong> only.
             Normal users and Level 1 Agents cannot access this feature.
           </p>
           <div className="p-4 bg-secondary/30 rounded-lg border border-border text-left text-sm space-y-2">
@@ -43,7 +43,7 @@ export default function CompanyDirectBuyPage() {
             <p className="text-muted-foreground">2. Then return to this page to purchase USDT directly from the company</p>
           </div>
           <Link href="/p2p/agent">
-            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold w-full gap-2">
+            <Button className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold w-full gap-2">
               🟢 Upgrade to Level Pro <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
@@ -55,7 +55,7 @@ export default function CompanyDirectBuyPage() {
   return (
     <div className="p-4 md:p-6 max-w-[900px] mx-auto space-y-6">
       <div className="flex items-center gap-3">
-        <Building2 className="w-6 h-6 text-emerald-400" />
+        <Building2 className="w-6 h-6 text-emerald-700 dark:text-emerald-400" />
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Company Direct USDT Purchase</h1>
           <p className="text-sm text-muted-foreground">Exclusive to Level Pro Agents — buy USDT directly from Void2Empire</p>
@@ -69,7 +69,7 @@ export default function CompanyDirectBuyPage() {
           <p className="text-sm text-muted-foreground mt-1">Contact our support team to initiate your direct USDT purchase.</p>
         </div>
         <Link href="/support?subject=Company Direct USDT Purchase">
-          <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold gap-2 shrink-0">
+          <Button className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold gap-2 shrink-0">
             <MessageSquare className="w-4 h-4" /> Open Support Chat
           </Button>
         </Link>
@@ -82,7 +82,7 @@ export default function CompanyDirectBuyPage() {
           {STEPS.map((s, i) => (
             <div key={s.step} className="flex gap-4">
               <div className="flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
+                <div className="w-8 h-8 rounded-full bg-emerald-400/15 border border-emerald-400/30 text-emerald-700 dark:text-emerald-400 flex items-center justify-center text-xs font-bold shrink-0">
                   {s.step}
                 </div>
                 {i < STEPS.length - 1 && <div className="w-0.5 flex-1 bg-border mt-2 mb-1 min-h-[20px]" />}

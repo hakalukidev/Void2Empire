@@ -35,13 +35,13 @@ const CATEGORIES: { key: Category; label: string }[] = [
 ];
 
 const RANK_MEDAL_COLOR: Record<number, string> = {
-  1: "text-yellow-400",
-  2: "text-slate-400",
+  1: "text-brand-gold-400",
+  2: "text-muted-foreground",
   3: "text-amber-600",
 };
 
 const PODIUM_RING: Record<number, string> = {
-  1: "ring-yellow-400/60 bg-yellow-400/10",
+  1: "ring-brand-gold-400/60 bg-brand-gold-400/10",
   2: "ring-slate-400/60 bg-slate-400/10",
   3: "ring-amber-600/60 bg-amber-600/10",
 };
@@ -58,7 +58,7 @@ export default function LeaderboardPage() {
     <div className="p-6 space-y-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Trophy className="w-7 h-7 text-yellow-400" />
+        <Trophy className="w-7 h-7 text-brand-gold-400" />
         <h1 className="text-2xl font-bold tracking-tight">Leaderboard</h1>
       </div>
 
@@ -112,15 +112,15 @@ export default function LeaderboardPage() {
 
         {/* 1st place — taller */}
         <Card className={`p-6 flex flex-col items-center text-center bg-card border-border ring-2 ${PODIUM_RING[1]} h-60 relative overflow-hidden`}>
-          <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/5 to-transparent pointer-events-none" />
-          <Trophy className="w-7 h-7 text-yellow-400 mb-2" />
-          <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center font-bold text-base mb-2 ring-2 ring-yellow-400/60">
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-gold-400/5 to-transparent pointer-events-none" />
+          <Trophy className="w-7 h-7 text-brand-gold-400 mb-2" />
+          <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center font-bold text-base mb-2 ring-2 ring-brand-gold-400/60">
             {top3[0].avatar}
           </div>
           <p className="font-bold truncate w-full">{top3[0].name}</p>
           <p className="text-xs text-muted-foreground mt-1"># 1</p>
           <p className="text-success font-bold text-lg mt-1">+${top3[0].pnl.toLocaleString()}</p>
-          <p className="text-xs text-success/70">+{top3[0].pnlPct}%</p>
+          <p className="text-xs text-success">+{top3[0].pnlPct}%</p>
         </Card>
 
         {/* 3rd place */}
