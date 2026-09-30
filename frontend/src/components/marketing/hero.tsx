@@ -24,7 +24,7 @@ const assurances = [
 export function Hero() {
   return (
     <section className="night relative overflow-hidden bg-[var(--brand-night)] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.18),transparent_60%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(76,141,255,0.18),transparent_60%)]" />
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 md:grid-cols-2 md:py-28">
         <div className="relative z-10 text-center md:text-left">
           <span className="text-sm font-medium uppercase tracking-[0.3em] text-brand-blue-400/80">

@@ -36,7 +36,7 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
       </defs>
       <path
         d="M4 6 H13 L24 31 L35 6 H44 L28 42 H20 Z"
-        fill={`url(#${id}-gold)`}
+        fill={`url(#${id}-accent)`}
         mask={`url(#${id}-notch)`}
       />
     </svg>
