@@ -27,14 +27,14 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.18),transparent_60%)]" />
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 md:grid-cols-2 md:py-28">
         <div className="relative z-10 text-center md:text-left">
-          <span className="text-sm font-medium uppercase tracking-[0.3em] text-brand-gold-400/80">
+          <span className="text-sm font-medium uppercase tracking-[0.3em] text-brand-blue-400/80">
             Trade · Grow · Rule
           </span>
           <h1 className="mt-5 text-4xl font-extrabold uppercase leading-[1.08] tracking-tight md:text-6xl lg:text-7xl">
             <span className="block bg-linear-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
               Trade the markets
             </span>
-            <span className="block bg-linear-to-r from-brand-gold-300 via-brand-gold-400 to-brand-gold-600 bg-clip-text text-transparent">
+            <span className="block bg-linear-to-r from-brand-blue-300 via-brand-blue-400 to-brand-blue-600 bg-clip-text text-transparent">
               your way
             </span>
           </h1>
@@ -62,7 +62,7 @@ export function Hero() {
           <div className="mt-12 grid gap-6 border-t border-white/10 pt-8 sm:grid-cols-3">
             {assurances.map((item) => (
               <div key={item.title} className="flex items-start gap-3 md:justify-start">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-gold-500/40 bg-brand-gold-500/10 text-brand-gold-400">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-blue-500/40 bg-brand-blue-500/10 text-brand-blue-400">
                   <item.icon className="h-4 w-4" />
                 </span>
                 <div className="text-left">

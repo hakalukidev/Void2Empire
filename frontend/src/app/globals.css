@@ -5,67 +5,67 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #0b0f19;
+  --background: #070b12;
   --foreground: #f8fafc;
-  --card: #111827;
+  --card: #0e1420;
   --card-foreground: #f8fafc;
-  --primary: #d4af37;
+  --primary: #4c8dff;
   --primary-foreground: #0b0f19;
-  --secondary: #1e293b;
+  --secondary: #1b2434;
   --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
+  --muted: #1b2434;
   --muted-foreground: #94a3b8;
-  --accent: #1e293b;
+  --accent: #1b2434;
   --accent-foreground: #f8fafc;
-  --destructive: #ef4444;
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #d4af37;
+  --destructive: #fb5c72;
+  --border: #1c2637;
+  --input: #1c2637;
+  --ring: #4c8dff;
 
-  --success: #10b981;
-  --warning: #d97706;
-  --danger: #f87171;
+  --success: #0ecb81;
+  --warning: #f5a524;
+  --danger: #fb5c72;
 
   /* Labels drawn on a solid --success / --danger fill. The hues above are tuned
      for text, so white-on-green only clears AA in light mode. */
   --success-fg: #0b0f19;
   --danger-fg: #0b0f19;
 
-  --brand-gold-200: #fbeec4;
-  --brand-gold-300: #f5d98b;
-  --brand-gold-400: #e8c56a;
-  --brand-gold-500: #d4af37;
-  --brand-gold-600: #b8912c;
-  --brand-gold-700: #8c6d1f;
+  --brand-blue-200: #dbeafe;
+  --brand-blue-300: #a6c8ff;
+  --brand-blue-400: #78a5ff;
+  --brand-blue-500: #4c8dff;
+  --brand-blue-600: #2f6fd8;
+  --brand-blue-700: #1d4ed8;
 
-  /* Marketing bands stay night-black in both themes; gold needs the dark ground. */
-  --brand-night: #0b0f19;
+  /* Marketing bands stay night-black in both themes; blue needs the dark ground. */
+  --brand-night: #070b12;
 
-  /* White on gold can never clear AA, so the CTA gradient keeps a fixed bright
-     ramp with a night-navy label in both themes. */
-  --gold-cta-from: #f5d98b;
-  --gold-cta-to: #b8912c;
-  --gold-cta-fg: #0b0f19;
+  /* Both stops must carry the same label at AA, which rules out a wide ramp:
+     white fails on the bright stop and navy fails on the deep one. */
+  --cta-from: #4c8dff;
+  --cta-to: #3b82f6;
+  --cta-fg: #0b0f19;
 }
 
 /* Light mode — toggled by next-themes via the .light class on <html> */
 .light {
-  --background: #f8fafc;
-  --foreground: #0b0f19;
+  --background: #f7f9fc;
+  --foreground: #0b1220;
   --card: #ffffff;
-  --card-foreground: #0b0f19;
-  --primary: #7d5c11;
+  --card-foreground: #0b1220;
+  --primary: #1d4ed8;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0b0f19;
-  --muted: #f1f5f9;
-  --muted-foreground: #5a6879;
+  --secondary: #eef2f8;
+  --secondary-foreground: #0b1220;
+  --muted: #eef2f8;
+  --muted-foreground: #55657a;
   --accent: #e2e8f0;
-  --accent-foreground: #0b0f19;
-  --destructive: #dc2626;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #7d5c11;
+  --accent-foreground: #0b1220;
+  --destructive: #b91c1c;
+  --border: #dde5ef;
+  --input: #dde5ef;
+  --ring: #1d4ed8;
 
   /* PnL colours are read as small text on white *and* on a 10% tint of itself,
      so they must clear 4.5:1 against both. */
@@ -76,37 +76,45 @@
   --success-fg: #ffffff;
   --danger-fg: #ffffff;
 
-  /* Gold needs to darken on white to stay legible as text and as a fill. */
-  --brand-gold-300: #c08f22;
-  --brand-gold-400: #b07d1a;
-  --brand-gold-500: #96690f;
-  --brand-gold-600: #8a6512;
-  --brand-gold-700: #6b4e0d;
+  /* Blue has to darken on white to stay legible as text and as a fill. */
+  --brand-blue-300: #2563eb;
+  --brand-blue-400: #1d4ed8;
+  --brand-blue-500: #1e40af;
+  --brand-blue-600: #1c3a9c;
+  --brand-blue-700: #172554;
+
+  --cta-from: #2563eb;
+  --cta-to: #1d4ed8;
+  --cta-fg: #ffffff;
 }
 
 /* Night bands keep the same black backdrop in both themes, so the tokens used
    inside them must stay on the dark ramp regardless of the app theme. */
 .night {
   --foreground: #f8fafc;
-  --primary: #d4af37;
+  --primary: #4c8dff;
   --primary-foreground: #0b0f19;
   --muted-foreground: #94a3b8;
-  --accent: #1e293b;
-  --ring: #d4af37;
+  --accent: #1b2434;
+  --ring: #4c8dff;
 
-  --success: #10b981;
-  --warning: #d97706;
-  --danger: #f87171;
+  --success: #0ecb81;
+  --warning: #f5a524;
+  --danger: #fb5c72;
 
   --success-fg: #0b0f19;
   --danger-fg: #0b0f19;
 
-  --brand-gold-200: #fbeec4;
-  --brand-gold-300: #f5d98b;
-  --brand-gold-400: #e8c56a;
-  --brand-gold-500: #d4af37;
-  --brand-gold-600: #b8912c;
-  --brand-gold-700: #8c6d1f;
+  --brand-blue-200: #dbeafe;
+  --brand-blue-300: #a6c8ff;
+  --brand-blue-400: #78a5ff;
+  --brand-blue-500: #4c8dff;
+  --brand-blue-600: #2f6fd8;
+  --brand-blue-700: #1d4ed8;
+
+  --cta-from: #4c8dff;
+  --cta-to: #3b82f6;
+  --cta-fg: #0b0f19;
 }
 
 @theme inline {
@@ -131,12 +139,12 @@
   --color-danger: var(--danger);
   --color-success-fg: var(--success-fg);
   --color-danger-fg: var(--danger-fg);
-  --color-brand-gold-200: var(--brand-gold-200);
-  --color-brand-gold-300: var(--brand-gold-300);
-  --color-brand-gold-400: var(--brand-gold-400);
-  --color-brand-gold-500: var(--brand-gold-500);
-  --color-brand-gold-600: var(--brand-gold-600);
-  --color-brand-gold-700: var(--brand-gold-700);
+  --color-brand-blue-200: var(--brand-blue-200);
+  --color-brand-blue-300: var(--brand-blue-300);
+  --color-brand-blue-400: var(--brand-blue-400);
+  --color-brand-blue-500: var(--brand-blue-500);
+  --color-brand-blue-600: var(--brand-blue-600);
+  --color-brand-blue-700: var(--brand-blue-700);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -119,7 +119,7 @@ function PostCard({ post, isBuying }: { post: P2PPost; isBuying: boolean }) {
               <AgentBadgeDisplay badge={post.creatorBadge} />
             </div>
             <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-              <Star className="w-3 h-3 text-brand-gold-400 fill-brand-gold-400" />
+              <Star className="w-3 h-3 text-brand-blue-400 fill-brand-blue-400" />
               <span>{post.completedTrades} completed</span>
             </div>
           </div>

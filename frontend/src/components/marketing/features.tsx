@@ -51,7 +51,7 @@ export function Features() {
       <div className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
           <div key={feature.title} className="flex flex-col items-center text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full border border-brand-gold-500/40 bg-brand-gold-500/10 text-primary">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full border border-brand-blue-500/40 bg-brand-blue-500/10 text-primary">
               <feature.icon className="h-6 w-6" />
             </span>
             <h3 className="mt-4 text-base font-semibold">{feature.title}</h3>
