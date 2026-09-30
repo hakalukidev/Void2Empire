@@ -9,11 +9,17 @@ export function Topbar() {
   const { t } = useLocaleStore();
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
+    <header className="flex h-14 items-center justify-between gap-4 border-b border-border bg-card px-4">
       <Logo size={24} />
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <span>{t("common.demo_balance")}: $10,000.00</span>
-        <span>{t("common.live_balance")}: $0.00</span>
+      <div className="flex items-center gap-2 text-sm">
+        <span className="flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-3 py-1">
+          <span className="text-muted-foreground">{t("common.demo_balance")}</span>
+          <span className="font-mono font-semibold tabular-nums">$10,000.00</span>
+        </span>
+        <span className="flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-3 py-1">
+          <span className="text-muted-foreground">{t("common.live_balance")}</span>
+          <span className="font-mono font-semibold tabular-nums">$0.00</span>
+        </span>
       </div>
       <div className="flex items-center gap-1">
         <LanguageSwitcher />

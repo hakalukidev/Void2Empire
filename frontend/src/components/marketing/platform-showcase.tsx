@@ -17,7 +17,7 @@ const screen = "#0b0f19";
 const rail = "#334155";
 const bull = "#10b981";
 const bear = "#ef4444";
-const gold = "#d4af37";
+const accent = "#4c8dff";
 
 type Candle = { x: number; wickTop: number; wickBottom: number; bodyTop: number; bodyHeight: number };
 
@@ -50,7 +50,7 @@ function DeviceFrame() {
     >
       <rect x="20" y="10" width="280" height="182" rx="10" fill={shell} stroke={edge} />
       <rect x="32" y="26" width="22" height="150" rx="4" fill={edge} />
-      <g fill={gold} fillOpacity="0.5">
+      <g fill={accent} fillOpacity="0.5">
         <circle cx="43" cy="40" r="3" />
         <circle cx="43" cy="54" r="3" />
         <circle cx="43" cy="68" r="3" />
@@ -99,7 +99,7 @@ function DeviceFrame() {
       <rect x="252" y="120" width="104" height="150" rx="14" fill={shell} stroke={edge} />
       <rect x="264" y="136" width="80" height="118" rx="6" fill={screen} />
       <rect x="272" y="144" width="40" height="6" rx="3" fill={rail} />
-      <rect x="306" y="144" width="30" height="6" rx="3" fill={gold} fillOpacity="0.5" />
+      <rect x="306" y="144" width="30" height="6" rx="3" fill={accent} fillOpacity="0.5" />
       {candles.slice(0, 6).map((candle, i) => (
         <rect
           key={candle.x}
@@ -127,7 +127,7 @@ export function PlatformShowcase() {
         </div>
 
         <div>
-          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-gold-400">
+          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-blue-400">
             Powerful trading platform
           </span>
           <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
@@ -141,7 +141,7 @@ export function PlatformShowcase() {
           <ul className="mt-8 grid gap-3 sm:grid-cols-2">
             {points.map((point) => (
               <li key={point} className="flex items-start gap-2 text-sm">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-gold-400" />
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-blue-400" />
                 <span className="text-white/65">{point}</span>
               </li>
             ))}

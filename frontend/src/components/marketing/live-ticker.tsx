@@ -28,7 +28,7 @@ export function LiveTicker() {
     <section className="night border-y border-white/10 bg-[var(--brand-night)] py-8 text-white">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-2 px-4">
         <h2 className="text-xl font-bold">Markets</h2>
-        <span className="rounded-full border border-brand-gold-500/40 bg-brand-gold-500/10 px-3 py-1 text-xs font-medium text-brand-gold-400">
+        <span className="rounded-full border border-brand-blue-500/40 bg-brand-blue-500/10 px-3 py-1 text-xs font-medium text-brand-blue-400">
           Illustrative — not live prices
         </span>
       </div>
@@ -40,7 +40,7 @@ export function LiveTicker() {
             const up = row.change >= 0;
             return (
               <div key={row.symbol} className="flex items-center gap-3 px-6 first:pl-0 last:pr-0">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-brand-gold-400">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-brand-blue-400">
                   <Icon className="h-4 w-4" />
                 </span>
                 <div>

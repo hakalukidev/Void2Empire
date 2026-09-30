@@ -22,10 +22,10 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id={`${id}-gold`} x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stopColor="var(--brand-gold-300)" />
-          <stop offset="0.55" stopColor="var(--brand-gold-500)" />
-          <stop offset="1" stopColor="var(--brand-gold-700)" />
+        <linearGradient id={`${id}-accent`} x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+          <stop stopColor="var(--brand-blue-300)" />
+          <stop offset="0.55" stopColor="var(--brand-blue-500)" />
+          <stop offset="1" stopColor="var(--brand-blue-600)" />
         </linearGradient>
         {/* Slicing the V's right arm into three prongs is what makes it read as an E. */}
         <mask id={`${id}-notch`}>
@@ -36,7 +36,7 @@ export function LogoMark({ size = 32, className }: { size?: number; className?: 
       </defs>
       <path
         d="M4 6 H13 L24 31 L35 6 H44 L28 42 H20 Z"
-        fill={`url(#${id}-gold)`}
+        fill={`url(#${id}-accent)`}
         mask={`url(#${id}-notch)`}
       />
     </svg>
@@ -51,7 +51,7 @@ export function Logo({ className, iconOnly = false, size = 32, tagline }: LogoPr
         <span className="flex flex-col leading-none">
           <span className="text-lg font-bold tracking-tight">
             Void
-            <span className="bg-linear-to-r from-brand-gold-400 to-brand-gold-600 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-brand-blue-300 to-brand-blue-500 bg-clip-text text-transparent">
               2Empire
             </span>
           </span>

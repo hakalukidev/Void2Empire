@@ -29,13 +29,13 @@ export function HeroGlobe() {
 
       <defs>
         <linearGradient id="globe-fill" x1="60" y1="60" x2="340" y2="340" gradientUnits="userSpaceOnUse">
-          <stop stopColor="var(--brand-gold-300)" />
-          <stop offset="0.5" stopColor="var(--brand-gold-500)" />
-          <stop offset="1" stopColor="var(--brand-gold-700)" />
+          <stop stopColor="var(--brand-blue-300)" />
+          <stop offset="0.5" stopColor="var(--brand-blue-500)" />
+          <stop offset="1" stopColor="var(--brand-blue-700)" />
         </linearGradient>
         <radialGradient id="globe-glow" cx="50%" cy="45%" r="55%">
-          <stop offset="0%" stopColor="var(--brand-gold-500)" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="var(--brand-gold-500)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--brand-blue-500)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="var(--brand-blue-500)" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="globe-shade" cx="42%" cy="38%" r="65%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.12" />
@@ -50,7 +50,7 @@ export function HeroGlobe() {
       <circle cx="200" cy="200" r="190" fill="url(#globe-glow)" />
 
       {/* network mesh */}
-      <g stroke="var(--brand-gold-400)" strokeOpacity="0.35" strokeWidth="1">
+      <g stroke="var(--brand-blue-400)" strokeOpacity="0.35" strokeWidth="1">
         <path d="M30 90 L150 60 L260 120 L380 70" />
         <path d="M20 180 L140 200 L250 170 L370 210" />
         <path d="M40 300 L160 280 L270 320 L360 290" />
@@ -59,7 +59,7 @@ export function HeroGlobe() {
         <path d="M140 200 L160 280" />
         <path d="M250 170 L270 320" />
       </g>
-      <g fill="var(--brand-gold-300)">
+      <g fill="var(--brand-blue-300)">
         <circle cx="30" cy="90" r="3" />
         <circle cx="150" cy="60" r="3" />
         <circle cx="260" cy="120" r="4" />
@@ -102,14 +102,14 @@ export function HeroGlobe() {
         cx="200"
         cy="200"
         r="175"
-        stroke="var(--brand-gold-400)"
+        stroke="var(--brand-blue-400)"
         strokeOpacity="0.25"
         strokeWidth="1"
         strokeDasharray="2 6"
       />
-      <circle cx="200" cy="20" r="4" fill="var(--brand-gold-400)" />
-      <circle cx="370" cy="140" r="3" fill="var(--brand-gold-600)" />
-      <circle cx="60" cy="330" r="3" fill="var(--brand-gold-400)" />
+      <circle cx="200" cy="20" r="4" fill="var(--brand-blue-400)" />
+      <circle cx="370" cy="140" r="3" fill="var(--brand-blue-600)" />
+      <circle cx="60" cy="330" r="3" fill="var(--brand-blue-400)" />
     </svg>
   );
 }

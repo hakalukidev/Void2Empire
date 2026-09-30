@@ -125,7 +125,7 @@ export default function AdminTradingSettingsPage() {
                     key={time.key}
                     onClick={() => setBinary({ ...binary, [time.key]: !binary[time.key as keyof typeof binary] })}
                     className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                      binary[time.key as keyof typeof binary] ? "bg-primary/20 text-primary border border-primary/30" : "bg-secondary text-muted-foreground border border-border"
+                      binary[time.key as keyof typeof binary] ? "bg-primary text-primary-foreground border border-primary" : "bg-secondary text-muted-foreground border border-border"
                     }`}
                   >
                     {time.label}
@@ -208,7 +208,7 @@ export default function AdminTradingSettingsPage() {
               <div className="flex gap-2">
                 {[1, 4, 8].map(h => (
                   <button key={h} onClick={() => setEditInterval(h)}
-                    className={`flex-1 py-1.5 rounded text-sm font-medium border ${editInterval === h ? "bg-primary/20 border-primary text-primary" : "bg-secondary border-border"}`}>
+                    className={`flex-1 py-1.5 rounded text-sm font-medium border ${editInterval === h ? "bg-primary border-primary text-primary-foreground" : "bg-secondary border-border"}`}>
                     {h}h
                   </button>
                 ))}
