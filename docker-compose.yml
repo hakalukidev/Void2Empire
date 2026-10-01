@@ -45,6 +45,9 @@ services:
       PORT: "8080"
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
       JWT_SECRET: ${JWT_SECRET}
+      # Rule #42: off unless the VPS .env opts in explicitly, so an operator who
+      # has not touched .env since the file was copied gets the safe value.
+      FEATURE_REAL_TRADING_ENABLED: ${FEATURE_REAL_TRADING_ENABLED:-false}
       FRONTEND_ORIGIN: https://${APP_DOMAIN}
       COOKIE_DOMAIN: ""
     depends_on:
