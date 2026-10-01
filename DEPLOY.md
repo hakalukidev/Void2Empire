@@ -105,6 +105,15 @@ openssl rand -base64 32   # REDIS_PASSWORD
 `.env` is gitignored. Keep it that way; it holds the signing key for every
 session token the platform issues.
 
+A blank or short `JWT_SECRET` is not a bootable configuration — the API exits
+at startup rather than signing tokens with a placeholder, and compose marks the
+backend container unhealthy, so `docker compose ps` shows the problem instead of
+a live site with forgeable sessions.
+
+`FEATURE_REAL_TRADING_ENABLED` defaults to `false` and stays false: Rule #42
+keeps real-money trading off until the client approves the go-live gate
+(REQ-094). Everything else in the app runs without it.
+
 ## 5. Launch
 
 ```bash
@@ -124,7 +133,7 @@ D=https://void2empire.com
 E="check+$(date +%s)@example.com"
 P='SomeStr0ng!Pass'
 
-curl -s $D/api/health
+curl -s $D/api/health                       # {"status":"ok"} — also proves postgres answers
 
 curl -s -c /tmp/j -X POST $D/api/auth/register \
   -H 'Content-Type: application/json' \
@@ -209,6 +218,16 @@ Deploy > Run workflow**. It SSHes in, pins `IMAGE_TAG` in `.env`, pulls only
 `backend` and `frontend` (pulling postgres or redis here would upgrade them
 during an unrelated deploy), restarts, waits for every container to report
 healthy, then smoke-tests `/api/health` and the frontend from outside.
+
+The health gate is a real one, not a liveness check: `/api/health` returns
+`{"status":"ok"}` only after a `2s`-bounded ping of PostgreSQL, and `503
+{"status":"unavailable"}` otherwise. A deploy that comes up against a dead
+database fails here instead of going green. The body is compared byte for byte,
+so adding a field to it breaks every deploy — `backend/README.md` pins that.
+
+Restarts are graceful: the API drains in-flight requests for up to 5s on
+SIGTERM, inside Docker's 10s stop grace period, so a deploy does not cut off a
+request that was mid-way.
 
 The split is deliberate. A required-reviewer rule on the `production`
 environment would be the natural gate, but GitHub only offers environment
