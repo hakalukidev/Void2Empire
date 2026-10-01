@@ -27,7 +27,7 @@ export default function PositionsPage() {
   const totalMargin = addDecimalStrings(...positions.map((p) => p.margin));
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="flex items-center gap-3">
         <BarChart2 className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">Positions</h1>

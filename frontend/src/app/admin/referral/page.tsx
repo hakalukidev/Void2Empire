@@ -19,7 +19,7 @@ export default function AdminReferralPage() {
   const togglePlan = (id: number) => setPlans(prev => prev.map(p => p.id === id ? { ...p, active: !p.active } : p));
 
   return (
-    <div className="p-6 space-y-6 max-w-[1200px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1200px] mx-auto">
       <div className="flex items-center gap-3">
         <HandCoins className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">Referral & Funding Settings</h1>

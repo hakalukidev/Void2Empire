@@ -43,7 +43,7 @@ export default function AdminDepositsPage() {
   const reject  = (id: string) => setDeposits(prev => prev.map(d => d.id === id ? { ...d, status: "failed"    as DepositStatus } : d));
 
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1400px] mx-auto">
       <div className="flex items-center gap-3">
         <ArrowDownCircle className="w-6 h-6 text-success" />
         <h1 className="text-2xl font-bold tracking-tight">Deposits</h1>

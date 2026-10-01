@@ -75,7 +75,7 @@ export default function ListingApplicationPage() {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <FilePlus2 className="w-6 h-6 text-primary" />
         <div>

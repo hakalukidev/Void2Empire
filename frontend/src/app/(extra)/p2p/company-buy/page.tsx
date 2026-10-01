@@ -27,7 +27,7 @@ export default function CompanyDirectBuyPage() {
 
   if (!isPro) {
     return (
-      <div className="p-6 max-w-[600px] mx-auto mt-10">
+      <div className="p-4 sm:p-6 max-w-[600px] mx-auto mt-6 sm:mt-10">
         <Card className="p-8 text-center bg-card border-border space-y-4">
           <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto">
             <Lock className="w-8 h-8 text-muted-foreground" />
@@ -101,7 +101,8 @@ export default function CompanyDirectBuyPage() {
         <div className="p-4 border-b border-border">
           <h2 className="font-semibold">Recent Company Purchases</h2>
         </div>
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full whitespace-nowrap text-sm">
           <thead className="bg-secondary/50 text-muted-foreground">
             <tr>
               <th className="px-5 py-3 font-medium text-left">ID</th>
@@ -128,6 +129,7 @@ export default function CompanyDirectBuyPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
     </div>
   );

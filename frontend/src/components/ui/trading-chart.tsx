@@ -16,13 +16,10 @@ export function TradingChart({ data, symbol }: TradingChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    const container = chartContainerRef.current;
+    if (!container) return;
 
-    const handleResize = () => {
-      chart.applyOptions({ width: chartContainerRef.current?.clientWidth });
-    };
-
-    const chart = createChart(chartContainerRef.current, {
+    const chart = createChart(container, {
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
         textColor: "#94a3b8",
@@ -31,10 +28,10 @@ export function TradingChart({ data, symbol }: TradingChartProps) {
         vertLines: { color: "#1e293b" },
         horzLines: { color: "#1e293b" },
       },
-      width: chartContainerRef.current.clientWidth,
-      height: chartContainerRef.current.clientHeight,
+      width: container.clientWidth,
+      height: container.clientHeight,
     });
-    
+
     chart.timeScale().fitContent();
 
     const lineSeries = chart.addSeries(LineSeries, {
@@ -42,18 +39,24 @@ export function TradingChart({ data, symbol }: TradingChartProps) {
       lineWidth: 2,
       title: symbol ?? "",
     });
-    
+
     if (data && data.length > 0) {
        lineSeries.setData(data);
     }
 
-    window.addEventListener("resize", handleResize);
+    // The container resizes with the layout (sidebar, rotation, stacked panels),
+    // not only with the window, so observe it directly.
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      chart.applyOptions({ width, height });
+    });
+    observer.observe(container);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
       chart.remove();
     };
   }, [data, symbol]);
 
-  return <div ref={chartContainerRef} className="w-full h-full min-h-[400px]" />;
+  return <div ref={chartContainerRef} className="w-full h-full min-h-[280px] sm:min-h-[360px] lg:min-h-[400px]" />;
 }

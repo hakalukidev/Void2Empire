@@ -28,13 +28,13 @@ export default function AdminP2PPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-[1200px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1200px] mx-auto">
       <div className="flex items-center gap-3">
         <ArrowLeftRight className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">P2P Management</h1>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="p-4 bg-card border-border"><p className="text-xs text-muted-foreground">Active Listings</p><p className="text-2xl font-bold">124</p></Card>
         <Card className="p-4 bg-card border-border border-l-4 border-l-danger"><p className="text-xs text-muted-foreground">Open Disputes</p><p className="text-2xl font-bold text-danger">3</p></Card>
         <Card className="p-4 bg-card border-border border-l-4 border-l-success"><p className="text-xs text-muted-foreground">Completed Today</p><p className="text-2xl font-bold text-success">45</p></Card>

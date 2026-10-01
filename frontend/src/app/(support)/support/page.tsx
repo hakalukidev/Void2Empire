@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +8,13 @@ import { Headphones, Mail, MessageSquare, Clock, Globe } from "lucide-react";
 
 export default function SupportPage() {
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8 min-h-[calc(100vh-4rem)] pt-12">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-8 min-h-[calc(100vh-4rem)] pt-6 sm:pt-12">
       
       <div className="text-center space-y-4 mb-12">
         <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
           <Headphones className="w-8 h-8" />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">How can we help you?</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">How can we help you?</h1>
         <p className="text-muted-foreground max-w-lg mx-auto">
           Our support team is available 24/7 to assist you with any issues or questions regarding your Void2Empire account.
         </p>
@@ -46,9 +47,9 @@ export default function SupportPage() {
           </div>
           <h3 className="font-semibold text-lg">Help Center</h3>
           <p className="text-sm text-muted-foreground">Browse our comprehensive guides and FAQs to find answers quickly.</p>
-          <a href="/faq" className="w-full mt-auto">
+          <Link href="/faq" className="w-full mt-auto">
             <Button variant="outline" className="w-full">View FAQ</Button>
-          </a>
+          </Link>
         </Card>
       </div>
 

@@ -46,7 +46,7 @@ export default function HistoryPage() {
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="flex items-center gap-3">
         <History className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">History</h1>
@@ -74,7 +74,8 @@ export default function HistoryPage() {
 
           {/* Closed Positions */}
           {tab === "positions" && (
-            <table className="w-full text-sm text-left">
+            <div className="overflow-x-auto">
+            <table className="w-full whitespace-nowrap text-sm text-left">
               <thead className="bg-secondary/50 text-muted-foreground">
                 <tr>
                   <th className="px-6 py-4 font-medium">Pair</th>
@@ -114,11 +115,13 @@ export default function HistoryPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
 
           {/* Order History */}
           {tab === "orders" && (
-            <table className="w-full text-sm text-left">
+            <div className="overflow-x-auto">
+            <table className="w-full whitespace-nowrap text-sm text-left">
               <thead className="bg-secondary/50 text-muted-foreground">
                 <tr>
                   <th className="px-6 py-4 font-medium">Order ID</th>
@@ -150,11 +153,13 @@ export default function HistoryPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
 
           {/* Transactions */}
           {tab === "transactions" && (
-            <table className="w-full text-sm text-left">
+            <div className="overflow-x-auto">
+            <table className="w-full whitespace-nowrap text-sm text-left">
               <thead className="bg-secondary/50 text-muted-foreground">
                 <tr>
                   <th className="px-6 py-4 font-medium">Tx ID</th>
@@ -182,11 +187,13 @@ export default function HistoryPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
 
           {/* Funding History */}
           {tab === "funding" && (
-            <table className="w-full text-sm text-left">
+            <div className="overflow-x-auto">
+            <table className="w-full whitespace-nowrap text-sm text-left">
               <thead className="bg-secondary/50 text-muted-foreground">
                 <tr>
                   <th className="px-6 py-4 font-medium">Settlement ID</th>
@@ -224,6 +231,7 @@ export default function HistoryPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
 
         </div>

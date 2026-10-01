@@ -4,11 +4,11 @@ import { Shield } from "lucide-react";
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8 min-h-[calc(100vh-4rem)] pt-12">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-8 min-h-[calc(100vh-4rem)] pt-6 sm:pt-12">
       <div className="space-y-4 border-b border-border pb-8">
         <div className="flex items-center gap-3 text-primary">
           <Shield className="w-8 h-8" />
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Privacy Policy</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">Privacy Policy</h1>
         </div>
         <p className="text-muted-foreground">Last Updated: September 2024</p>
       </div>
