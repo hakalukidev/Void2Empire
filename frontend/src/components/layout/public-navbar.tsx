@@ -13,10 +13,15 @@ export function PublicNavbar() {
   const [open, setOpen] = useState(false);
   const { t } = useLocaleStore();
 
+  // Every link here points at a route that exists. The old #markets /
+  // #features / #how-it-works anchors targeted sections the home page no
+  // longer renders.
   const navLinks = [
-    { href: "#markets", labelKey: "nav.markets_link" },
-    { href: "#features", labelKey: "nav.features" },
-    { href: "#how-it-works", labelKey: "nav.how_it_works" },
+    { href: "/markets", labelKey: "nav.markets" },
+    { href: "/trade", labelKey: "nav.section_trade" },
+    { href: "/funding", labelKey: "nav.funding" },
+    { href: "/p2p", labelKey: "nav.p2p" },
+    { href: "/leaderboard", labelKey: "nav.leaderboard" },
     { href: "/faq", labelKey: "nav.faq" },
   ];
 
