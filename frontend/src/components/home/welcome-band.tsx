@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, ArrowUpDown, LayoutDashboard, Timer, TrendingUp } from "lucide-react";
-import { LogoMark } from "@/components/ui/logo";
+import { HeroMark } from "@/components/ui/logo";
 import { useLocaleStore } from "@/store/locale-store";
 
 // Each product gets its own accent so the four tiles read as four different
@@ -61,9 +61,8 @@ export function WelcomeBand() {
               <p className="mt-4 text-sm leading-relaxed text-white/70">{t("home.welcome_lead")}</p>
             </div>
 
-            <LogoMark
+            <HeroMark
               size={100}
-              aria-hidden
               className="hidden shrink-0 drop-shadow-[0_0_30px_rgba(76,141,255,0.5)] min-[1440px]:block"
             />
           </div>
