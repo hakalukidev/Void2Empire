@@ -10,7 +10,7 @@ export default function ProfilePage() {
   const { t } = useLocaleStore();
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">{t("profile.title")}</h1>
 
       <div className="grid md:grid-cols-3 gap-6">

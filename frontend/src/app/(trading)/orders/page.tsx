@@ -47,7 +47,7 @@ export default function OrdersPage() {
   const filtered = tab === "all" ? MOCK_ORDERS : MOCK_ORDERS.filter(o => o.status === tab);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="flex items-center gap-3">
         <ClipboardList className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">Orders</h1>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import {
   LayoutDashboard, Users, Coins, Settings2, ArrowDownCircle,
   ArrowUpCircle, Wallet, ArrowLeftRight, BarChart2, Megaphone,
@@ -55,13 +56,26 @@ const NAV_SECTIONS = [
 ];
 
 export function AdminSidebar() {
+  return (
+    <>
+      <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 border-r border-border bg-card md:flex flex-col overflow-y-auto">
+        <AdminNav />
+      </aside>
+      <MobileDrawer>
+        <AdminNav />
+      </MobileDrawer>
+    </>
+  );
+}
+
+function AdminNav() {
   const pathname = usePathname();
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <aside className="hidden w-60 shrink-0 border-r border-border bg-card md:flex flex-col overflow-y-auto">
+    <>
       <nav className="flex flex-col gap-5 p-3 flex-1">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label}>
@@ -91,6 +105,6 @@ export function AdminSidebar() {
         <LanguageSwitcher />
         <ThemeToggle />
       </div>
-    </aside>
+    </>
   );
 }

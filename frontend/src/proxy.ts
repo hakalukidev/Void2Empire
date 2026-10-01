@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isGuestOnlyPath, isProtectedPath, safeNextPath } from "@/lib/auth/routes";
 
 // Authentication cookie set by the backend (see backend config.CookieName).
 const AUTH_COOKIE = "access_token";
@@ -29,18 +30,44 @@ function isTokenExpired(token: string): boolean {
 
 export function proxy(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE)?.value;
+  const hasSession = !!token && !isTokenExpired(token);
+  const { pathname, search } = request.nextUrl;
+
+  if (isGuestOnlyPath(pathname)) {
+    if (!hasSession) return NextResponse.next();
+    const next = request.nextUrl.searchParams.get("next");
+    return NextResponse.redirect(new URL(safeNextPath(next), request.url));
+  }
 
   // NOTE: Role-based gating is intentionally NOT implemented here — it is
   // blocked by DR-026 (unresolved). Only authentication is enforced.
-  if (!token || isTokenExpired(token)) {
+  if (isProtectedPath(pathname) && !hasSession) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", request.nextUrl.pathname);
+    loginUrl.searchParams.set("next", pathname + search);
     return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
+// Must be static literals (Next analyzes them at build time); mirror
+// PROTECTED_PREFIXES and GUEST_ONLY_PATHS in lib/auth/routes.ts.
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/wallet/:path*",
+    "/funding/:path*",
+    "/profile/:path*",
+    "/referral/:path*",
+    "/trade/:path*",
+    "/orders/:path*",
+    "/positions/:path*",
+    "/history/:path*",
+    "/p2p/:path*",
+    "/listing-application/:path*",
+    "/support/:path*",
+    "/admin/:path*",
+    "/login",
+    "/register",
+  ],
 };

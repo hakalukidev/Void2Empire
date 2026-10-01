@@ -67,7 +67,7 @@ export default function FundingPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 sm:p-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{t("funding.title")}</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("funding.subtitle")}</p>
@@ -189,7 +189,8 @@ function MilestoneTable({
         <TrendingUp className="h-5 w-5 text-success" />
         <h3 className="text-sm font-semibold">{title}</h3>
       </div>
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full whitespace-nowrap text-sm">
         <thead className="text-xs text-muted-foreground">
           <tr>
             <th className="py-1 text-left font-medium">Profit</th>
@@ -205,6 +206,7 @@ function MilestoneTable({
           ))}
         </tbody>
       </table>
+      </div>
       <p className="mt-3 flex gap-1.5 text-xs leading-relaxed text-muted-foreground">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         {note}

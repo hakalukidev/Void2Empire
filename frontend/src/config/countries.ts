@@ -198,9 +198,3 @@ export const countries: Country[] = [
   { name: "Zambia", iso2: "ZM", dialCode: "260" },
   { name: "Zimbabwe", iso2: "ZW", dialCode: "263" },
 ];
-
-export function flagEmoji(iso2: string): string {
-  return iso2
-    .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
-}

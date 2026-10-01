@@ -43,13 +43,13 @@ export default function BinaryTradePage() {
   const potentialProfit = investAmount * payoutRate;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
+    <div className="flex flex-col gap-4 p-3 sm:p-4 lg:h-[calc(100vh-3.5rem)]">
       {/* REQ-051 verbatim disclaimer — required on all demo views (Sec46 rule #41) */}
       {isDemo && <DemoDisclaimer />}
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">{pair} <span className="text-sm font-normal text-muted-foreground ml-2">Binary</span></h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{pair} <span className="text-sm font-normal text-muted-foreground ml-2">Binary</span></h1>
           {isDemo ? (
             <div className="flex items-center gap-2 px-3 py-1 bg-warning/10 text-warning rounded-full text-sm font-medium border border-warning/30">
               <FlaskConical className="w-4 h-4" />
@@ -70,9 +70,9 @@ export default function BinaryTradePage() {
         )}
       </div>
 
-      <div className="flex flex-1 gap-4 overflow-hidden flex-col lg:flex-row">
+      <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:overflow-hidden">
         {/* Main Chart Area */}
-        <div className="flex-1 flex flex-col gap-4 min-h-[400px]">
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
           <Card className="flex-1 bg-card border-border overflow-hidden relative">
              <div className="absolute top-4 left-4 z-10 flex gap-2">
                 {/* Timeframe selector mock */}
@@ -137,12 +137,12 @@ export default function BinaryTradePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-auto pt-6">
-             <Button className="h-20 bg-success hover:bg-success/90 text-success-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-success-focus active:border-b-0 active:translate-y-1 transition-all">
+          <div className="grid grid-cols-2 gap-3 mt-auto pt-2 lg:pt-6">
+             <Button className="h-16 sm:h-20 bg-success hover:bg-success/90 text-success-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-success-focus active:border-b-0 active:translate-y-1 transition-all">
                 <TrendingUp className="w-6 h-6" />
                 {t("binary.up")}
              </Button>
-             <Button className="h-20 bg-danger hover:bg-danger/90 text-danger-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-danger-focus active:border-b-0 active:translate-y-1 transition-all">
+             <Button className="h-16 sm:h-20 bg-danger hover:bg-danger/90 text-danger-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-danger-focus active:border-b-0 active:translate-y-1 transition-all">
                 <TrendingDown className="w-6 h-6" />
                 {t("binary.down")}
              </Button>

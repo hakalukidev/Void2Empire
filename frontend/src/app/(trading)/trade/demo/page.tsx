@@ -34,12 +34,12 @@ export default function TradeDemoPage() {
   const fee = sizeNum * 0.0004;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] p-4 gap-4">
+    <div className="flex flex-col gap-4 p-3 sm:p-4 lg:h-[calc(100vh-3.5rem)]">
       {/* REQ-051 verbatim disclaimer — must be preserved exactly on all demo views */}
       <DemoDisclaimer />
 
       {/* Demo Mode Banner */}
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-warning/10 border border-warning/30 rounded-lg">
+      <div className="flex flex-col items-start gap-3 px-4 py-2.5 bg-warning/10 border border-warning/30 rounded-lg sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-warning text-sm font-medium">
           <FlaskConical className="w-4 h-4 shrink-0" />
           {t("demo.mode_banner")}
@@ -50,7 +50,7 @@ export default function TradeDemoPage() {
       </div>
 
       {/* Demo Balance Bar */}
-      <div className="flex items-center gap-6 px-4 py-2 bg-card border border-border rounded-lg text-sm">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2 bg-card border border-border rounded-lg text-sm">
         <div className="flex items-center gap-2">
           <FlaskConical className="w-4 h-4 text-warning" />
           <span className="text-muted-foreground">{t("demo.balance")}:</span>
@@ -63,9 +63,9 @@ export default function TradeDemoPage() {
         <Button size="sm" variant="secondary" className="ml-auto text-xs">{t("demo.reset")}</Button>
       </div>
 
-      <div className="flex flex-1 gap-4 overflow-hidden flex-col lg:flex-row">
+      <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:overflow-hidden">
         {/* Pair Selector + Chart */}
-        <div className="flex-1 flex flex-col gap-3 min-h-[400px]">
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
           <div className="flex gap-2 overflow-x-auto pb-1">
             {DEMO_PAIRS.map((p) => (
               <button

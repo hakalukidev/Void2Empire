@@ -61,8 +61,8 @@ export default function WalletPage() {
   ];
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight">{t("wallet.title")}</h1>
         <div className="flex gap-2">
           <Link href="/wallet/deposit">
@@ -83,7 +83,7 @@ export default function WalletPage() {
         <p className="mb-1 text-sm font-medium text-muted-foreground">
           {t("wallet.total_balance")}
         </p>
-        <h2 className="text-4xl font-bold tracking-tighter">
+        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
           ${total} <span className="text-lg text-muted-foreground">{balances?.currency ?? "USDT"}</span>
         </h2>
       </Card>
@@ -123,7 +123,8 @@ export default function WalletPage() {
           </Link>
         </div>
         <Card className="overflow-hidden p-0">
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full whitespace-nowrap text-left text-sm">
             <thead className="bg-secondary/50 text-muted-foreground">
               <tr>
                 <th className="px-6 py-3 font-medium">{t("wallet.type")}</th>
@@ -140,6 +141,7 @@ export default function WalletPage() {
               </tr>
             </tbody>
           </table>
+          </div>
         </Card>
       </div>
     </div>

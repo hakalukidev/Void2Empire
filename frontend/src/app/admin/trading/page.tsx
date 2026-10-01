@@ -53,7 +53,7 @@ export default function AdminTradingSettingsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-[1000px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1000px] mx-auto">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <BarChart2 className="w-6 h-6 text-primary" />
@@ -194,7 +194,7 @@ export default function AdminTradingSettingsPage() {
 
       {/* Edit Funding Modal */}
       {editingFunding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4">
           <Card className="w-full max-w-sm p-6 bg-card border-border space-y-4">
             <h2 className="font-bold text-lg border-b border-border pb-2">Edit Funding: {editingFunding.pair}</h2>
             

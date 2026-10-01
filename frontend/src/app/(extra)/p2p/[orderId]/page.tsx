@@ -232,7 +232,7 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
 
       {/* Dispute Modal */}
       {showDisputeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4">
           <Card className="w-full max-w-md p-6 bg-card border-border space-y-4">
             <div className="flex items-center gap-2 text-warning">
               <ShieldAlert className="w-5 h-5" />

@@ -23,6 +23,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useLocaleStore } from "@/store/locale-store";
+import { MobileDrawer } from "@/components/layout/mobile-drawer";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
 type NavItem = { href: string; labelKey: string; icon: typeof LayoutDashboard };
 
@@ -71,11 +74,27 @@ function isActive(pathname: string, href: string) {
 }
 
 export function Sidebar() {
+  return (
+    <>
+      <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-60 shrink-0 overflow-y-auto border-r border-border bg-card md:block">
+        <SidebarNav />
+      </aside>
+      <MobileDrawer>
+        <SidebarNav />
+        <div className="mt-auto flex items-center gap-1 border-t border-border p-3 sm:hidden">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
+      </MobileDrawer>
+    </>
+  );
+}
+
+function SidebarNav() {
   const { t } = useLocaleStore();
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-border bg-card md:block">
       <nav className="flex flex-col gap-6 p-3">
         {SECTIONS.map((section) => (
           <div key={section.labelKey}>
@@ -107,6 +126,5 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
-    </aside>
   );
 }

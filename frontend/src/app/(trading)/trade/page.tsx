@@ -25,7 +25,7 @@ export default function TradePage() {
   const { t } = useLocaleStore();
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{t("trade.launcher.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("trade.launcher.subtitle")}</p>

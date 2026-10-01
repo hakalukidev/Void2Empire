@@ -54,7 +54,7 @@ export default function WalletTransactionsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="flex items-center gap-3">
         <History className="w-6 h-6 text-primary" />
         <div>
@@ -131,7 +131,7 @@ export default function WalletTransactionsPage() {
 
       {/* Detail panel */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setSelected(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4" onClick={() => setSelected(null)}>
           <Card
             className="w-full max-w-md bg-card border-border p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}

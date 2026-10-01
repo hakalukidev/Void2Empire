@@ -26,7 +26,7 @@ export default function ListingAppsPage() {
   const reject = (id: string) => setApps(prev => prev.map(a => a.id === id ? { ...a, status: "rejected" as AppStatus } : a));
 
   return (
-    <div className="p-6 space-y-6 max-w-[1200px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1200px] mx-auto">
       <div className="flex items-center gap-3">
         <FileText className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">Listing Applications</h1>

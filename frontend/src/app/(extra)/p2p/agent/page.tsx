@@ -140,7 +140,7 @@ export default function AgentRegistrationPage() {
 
       {/* Confirm Modal */}
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4">
           <Card className="w-full max-w-sm p-6 bg-card border-border space-y-4">
             <h2 className="font-bold text-lg">Confirm Application</h2>
             <p className="text-sm text-muted-foreground">
