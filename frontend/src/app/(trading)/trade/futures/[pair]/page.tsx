@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { use, useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,9 +51,9 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
       (side === "short" && fundingConfig.fundingDirection === "short_pays_long"));
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen pt-16 bg-background">
+    <div className="flex flex-col bg-background lg:h-[calc(100vh-3.5rem)] lg:flex-row">
       {/* Left: Orderbook placeholder */}
-      <div className="w-full lg:w-[260px] border-r border-border p-4 flex flex-col gap-4 overflow-y-auto shrink-0">
+      <div className="order-3 flex min-h-48 w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-border p-4 lg:order-none lg:min-h-0 lg:w-[260px] lg:border-t-0 lg:border-r">
         <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Order Book</h2>
         <div className="flex-1 rounded-md bg-secondary/20 border border-border flex items-center justify-center text-muted-foreground text-xs">
           Order Book Data
@@ -60,13 +61,13 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
       </div>
 
       {/* Center: Chart */}
-      <div className="flex-1 flex flex-col border-r border-border min-w-0">
-        <div className="p-4 border-b border-border flex justify-between items-center bg-card">
+      <div className="flex min-w-0 flex-1 flex-col lg:border-r lg:border-border">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card p-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{displayPair}</h1>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{displayPair}</h1>
             <p className="text-sm text-success font-medium">+2.45% (24h)</p>
           </div>
-          <div className="flex gap-8 text-sm">
+          <div className="flex gap-6 text-sm sm:gap-8">
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Mark Price</p>
               <p className="font-bold text-lg font-mono">48,000.00</p>
@@ -77,13 +78,13 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-2 sm:p-4">
           <TradingChart data={mockChartData} />
         </div>
       </div>
 
       {/* Right: Order Form */}
-      <div className="w-full lg:w-[340px] p-4 bg-card flex flex-col gap-4 overflow-y-auto border-l border-border shrink-0">
+      <div className="flex w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-border bg-card p-4 lg:w-[340px] lg:border-t-0 lg:border-l">
 
         {/* Side selector */}
         <div className="grid grid-cols-2 gap-2">
@@ -213,7 +214,7 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
 
         <p className="text-[10px] text-center text-muted-foreground">
           By placing an order you agree to the{" "}
-          <a href="/risk-disclosure" className="underline hover:text-foreground">Risk Disclosure</a>.
+          <Link href="/risk-disclosure" className="underline hover:text-foreground">Risk Disclosure</Link>.
         </p>
       </div>
     </div>

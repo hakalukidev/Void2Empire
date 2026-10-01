@@ -8,10 +8,12 @@ import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { useLocaleStore } from "@/store/locale-store";
+import { useAuthStore } from "@/store/auth-store";
 
 export function PublicNavbar() {
   const [open, setOpen] = useState(false);
   const { t } = useLocaleStore();
+  const isAuthenticated = useAuthStore((state) => state.status === "authenticated");
 
   const navLinks = [
     { href: "#markets", labelKey: "nav.markets_link" },
@@ -42,19 +44,29 @@ export function PublicNavbar() {
         <div className="hidden items-center gap-3 md:flex">
           <LanguageSwitcher />
           <ThemeToggle />
-          <Link href="/login">
-            <Button
-              variant="outline"
-              className="h-9 rounded-full border-white/25 text-white hover:bg-white/10"
-            >
-              {t("nav.login")}
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button variant="gradient" className="h-9 rounded-full px-5">
-              {t("nav.register")}
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link href="/dashboard">
+              <Button variant="gradient" className="h-9 rounded-full px-5">
+                {t("nav.dashboard")}
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button
+                  variant="outline"
+                  className="h-9 rounded-full border-white/25 text-white hover:bg-white/10"
+                >
+                  {t("nav.login")}
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="gradient" className="h-9 rounded-full px-5">
+                  {t("nav.register")}
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -82,19 +94,29 @@ export function PublicNavbar() {
             ))}
           </nav>
           <div className="mt-4 flex flex-col gap-2">
-            <Link href="/login" onClick={() => setOpen(false)}>
-              <Button
-                variant="outline"
-                className="w-full rounded-full border-white/25 text-white hover:bg-white/10"
-              >
-                {t("nav.login")}
-              </Button>
-            </Link>
-            <Link href="/register" onClick={() => setOpen(false)}>
-              <Button variant="gradient" className="w-full rounded-full">
-                {t("nav.register")}
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link href="/dashboard" onClick={() => setOpen(false)}>
+                <Button variant="gradient" className="w-full rounded-full">
+                  {t("nav.dashboard")}
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" onClick={() => setOpen(false)}>
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full border-white/25 text-white hover:bg-white/10"
+                  >
+                    {t("nav.login")}
+                  </Button>
+                </Link>
+                <Link href="/register" onClick={() => setOpen(false)}>
+                  <Button variant="gradient" className="w-full rounded-full">
+                    {t("nav.register")}
+                  </Button>
+                </Link>
+              </>
+            )}
             <div className="mt-2 flex justify-center gap-2">
               <LanguageSwitcher />
               <ThemeToggle />

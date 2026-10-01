@@ -20,7 +20,7 @@ export default function ReferralPage() {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">{t("referral.title")}</h1>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -75,7 +75,8 @@ export default function ReferralPage() {
           <div className="p-6 border-b border-border">
             <h2 className="text-lg font-semibold">{t("referral.recent")}</h2>
           </div>
-          <table className="w-full text-sm text-left">
+          <div className="overflow-x-auto">
+          <table className="w-full whitespace-nowrap text-sm text-left">
             <thead className="bg-secondary/50 text-muted-foreground">
               <tr>
                 <th className="px-6 py-3 font-medium">User</th>
@@ -90,6 +91,7 @@ export default function ReferralPage() {
               </tr>
             </tbody>
           </table>
+          </div>
         </Card>
       </div>
     </div>

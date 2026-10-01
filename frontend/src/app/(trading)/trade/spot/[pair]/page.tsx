@@ -103,9 +103,9 @@ export default function SpotTradePage({ params }: PageProps) {
   const quote = marketId.endsWith("USDT") ? "USDT" : "";
 
   return (
-    <div className="flex h-screen flex-col bg-background pt-16">
+    <div className="flex flex-col bg-background lg:h-[calc(100vh-3.5rem)]">
       {/* Ticker header */}
-      <div className="flex items-center gap-6 border-b border-border bg-card px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border bg-card px-4 py-3">
         <h1 className="text-xl font-bold tracking-tight">{ticker?.pair ?? marketId}</h1>
         <div>
           <p className="text-xs text-muted-foreground">{t("spot.price")}</p>
@@ -119,9 +119,9 @@ export default function SpotTradePage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 lg:flex-row lg:overflow-hidden">
+      <div className="flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:flex-row lg:overflow-hidden">
         {/* Order book + recent trades */}
-        <div className="flex w-full flex-col gap-4 lg:w-[280px] lg:shrink-0">
+        <div className="order-3 grid w-full gap-4 sm:grid-cols-2 lg:order-none lg:flex lg:w-[280px] lg:shrink-0 lg:flex-col lg:overflow-y-auto">
           <Card className="border-border bg-card p-4">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">
               {t("spot.orderbook")}
@@ -154,12 +154,12 @@ export default function SpotTradePage({ params }: PageProps) {
         </div>
 
         {/* Chart */}
-        <Card className="min-h-[360px] flex-1 overflow-hidden border-border bg-card">
+        <Card className="min-w-0 flex-1 overflow-hidden border-border bg-card">
           <TradingChart data={MOCK_CHART_DATA} />
         </Card>
 
         {/* Order form */}
-        <Card className="flex w-full flex-col gap-4 border-border bg-card p-4 lg:w-[320px] lg:shrink-0">
+        <Card className="flex w-full flex-col gap-4 border-border bg-card p-4 lg:w-[320px] lg:shrink-0 lg:overflow-y-auto">
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setSide("buy")}
@@ -235,7 +235,8 @@ export default function SpotTradePage({ params }: PageProps) {
         {orders.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">{t("spot.no_open_orders")}</p>
         ) : (
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-left text-sm">
             <thead className="text-xs text-muted-foreground">
               <tr>
                 <th className="py-2 font-medium">Pair</th>
@@ -263,6 +264,7 @@ export default function SpotTradePage({ params }: PageProps) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

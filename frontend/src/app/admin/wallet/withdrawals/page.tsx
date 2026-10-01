@@ -35,7 +35,7 @@ export default function AdminWithdrawalsPage() {
   const reject  = (id: string) => setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status: "failed"     as WithdrawalStatus } : w));
 
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1400px] mx-auto">
       <div className="flex items-center gap-3">
         <ArrowUpCircle className="w-6 h-6 text-warning" />
         <h1 className="text-2xl font-bold tracking-tight">Withdrawals</h1>

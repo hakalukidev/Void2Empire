@@ -39,7 +39,7 @@ export default function AdminSupportPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto h-[calc(100vh-2rem)] flex flex-col">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1400px] mx-auto flex flex-col lg:h-[calc(100vh-3.5rem)]">
       <div className="flex items-center gap-3 shrink-0">
         <Ticket className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">Support Tickets</h1>
@@ -47,7 +47,7 @@ export default function AdminSupportPage() {
 
       <div className="grid lg:grid-cols-3 gap-6 flex-1 min-h-0">
         {/* Ticket List */}
-        <Card className="lg:col-span-1 bg-card border-border flex flex-col overflow-hidden">
+        <Card className="lg:col-span-1 bg-card border-border flex max-h-80 flex-col overflow-hidden lg:max-h-none">
           <div className="p-4 border-b border-border shrink-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -70,10 +70,10 @@ export default function AdminSupportPage() {
         </Card>
 
         {/* Ticket Thread */}
-        <Card className="lg:col-span-2 bg-card border-border flex flex-col overflow-hidden">
+        <Card className="lg:col-span-2 bg-card border-border flex min-h-[28rem] flex-col overflow-hidden lg:min-h-0">
           {activeTicket ? (
             <>
-              <div className="p-4 border-b border-border flex justify-between items-center shrink-0">
+              <div className="p-4 border-b border-border flex flex-wrap justify-between items-center gap-2 shrink-0">
                 <div>
                   <h2 className="font-bold text-lg">{activeTicket.category} <span className="text-muted-foreground text-sm font-mono ml-2">#{activeTicket.id}</span></h2>
                   <p className="text-sm text-muted-foreground">User: {activeTicket.user}</p>

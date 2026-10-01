@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useLocaleStore } from "@/store/locale-store";
 import { HelpCircle, Search, ChevronDown } from "lucide-react";
@@ -37,13 +38,13 @@ export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-8 min-h-[calc(100vh-4rem)] pt-12">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-8 min-h-[calc(100vh-4rem)] pt-6 sm:pt-12">
       
       <div className="text-center space-y-4 mb-12">
         <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
           <HelpCircle className="w-8 h-8" />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">Frequently Asked Questions</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Frequently Asked Questions</h1>
         <p className="text-muted-foreground max-w-lg mx-auto">
           Find answers to common questions about trading, security, deposits, and account management on Void2Empire.
         </p>
@@ -80,7 +81,7 @@ export default function FAQPage() {
 
       <div className="text-center pt-8">
         <p className="text-muted-foreground text-sm">
-          Still have questions? <a href="/support" className="text-primary font-medium hover:underline">Contact our Support Team</a>
+          Still have questions? <Link href="/support" className="text-primary font-medium hover:underline">Contact our Support Team</Link>
         </p>
       </div>
     </div>

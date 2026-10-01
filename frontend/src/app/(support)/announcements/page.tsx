@@ -24,7 +24,7 @@ export default function AnnouncementsPage() {
   }, []);
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6 min-h-[calc(100vh-4rem)] pt-12">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-6 min-h-[calc(100vh-4rem)] pt-6 sm:pt-12">
       <div className="flex items-center gap-3">
         <Megaphone className="w-6 h-6 text-primary" />
         <div>

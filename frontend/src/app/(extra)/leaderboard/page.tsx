@@ -55,7 +55,7 @@ export default function LeaderboardPage() {
   const rest  = MOCK_TRADERS.slice(3);
 
   return (
-    <div className="p-6 space-y-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Trophy className="w-7 h-7 text-brand-blue-400" />
@@ -98,20 +98,20 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Top 3 Podium */}
-      <div className="grid grid-cols-3 gap-4 items-end">
+      <div className="grid grid-cols-3 items-end gap-2 sm:gap-4">
         {/* 2nd place */}
-        <Card className={`p-6 flex flex-col items-center text-center bg-card border-border ring-2 ${PODIUM_RING[2]} h-48`}>
+        <Card className={`p-3 sm:p-6 flex flex-col items-center text-center bg-card border-border ring-2 ${PODIUM_RING[2]} h-44 sm:h-48`}>
           <Medal className={`w-6 h-6 mb-2 ${RANK_MEDAL_COLOR[2]}`} />
           <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center font-bold text-sm mb-2 ring-2 ring-slate-400/40">
             {top3[1].avatar}
           </div>
           <p className="font-semibold text-sm truncate w-full">{top3[1].name}</p>
           <p className="text-xs text-muted-foreground mt-1"># 2</p>
-          <p className="text-success font-bold mt-1">+${top3[1].pnl.toLocaleString()}</p>
+          <p className="text-success text-sm sm:text-base font-bold mt-1">+${top3[1].pnl.toLocaleString()}</p>
         </Card>
 
         {/* 1st place — taller */}
-        <Card className={`p-6 flex flex-col items-center text-center bg-card border-border ring-2 ${PODIUM_RING[1]} h-60 relative overflow-hidden`}>
+        <Card className={`p-3 sm:p-6 flex flex-col items-center text-center bg-card border-border ring-2 ${PODIUM_RING[1]} h-56 sm:h-60 relative overflow-hidden`}>
           <div className="absolute inset-0 bg-gradient-to-b from-brand-blue-400/5 to-transparent pointer-events-none" />
           <Trophy className="w-7 h-7 text-brand-blue-400 mb-2" />
           <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center font-bold text-base mb-2 ring-2 ring-brand-blue-400/60">
@@ -119,19 +119,19 @@ export default function LeaderboardPage() {
           </div>
           <p className="font-bold truncate w-full">{top3[0].name}</p>
           <p className="text-xs text-muted-foreground mt-1"># 1</p>
-          <p className="text-success font-bold text-lg mt-1">+${top3[0].pnl.toLocaleString()}</p>
+          <p className="text-success font-bold text-base sm:text-lg mt-1">+${top3[0].pnl.toLocaleString()}</p>
           <p className="text-xs text-success">+{top3[0].pnlPct}%</p>
         </Card>
 
         {/* 3rd place */}
-        <Card className={`p-6 flex flex-col items-center text-center bg-card border-border ring-2 ${PODIUM_RING[3]} h-44`}>
+        <Card className={`p-3 sm:p-6 flex flex-col items-center text-center bg-card border-border ring-2 ${PODIUM_RING[3]} h-40 sm:h-44`}>
           <Medal className={`w-6 h-6 mb-2 ${RANK_MEDAL_COLOR[3]}`} />
           <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center font-bold text-sm mb-2 ring-2 ring-amber-600/40">
             {top3[2].avatar}
           </div>
           <p className="font-semibold text-sm truncate w-full">{top3[2].name}</p>
           <p className="text-xs text-muted-foreground mt-1"># 3</p>
-          <p className="text-success font-bold mt-1">+${top3[2].pnl.toLocaleString()}</p>
+          <p className="text-success text-sm sm:text-base font-bold mt-1">+${top3[2].pnl.toLocaleString()}</p>
         </Card>
       </div>
 

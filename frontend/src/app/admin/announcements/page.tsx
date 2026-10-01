@@ -24,7 +24,7 @@ export default function AdminAnnouncementsPage() {
   const deleteAnnouncement = (id: number) => setAnnouncements(prev => prev.filter(a => a.id !== id));
 
   return (
-    <div className="p-6 space-y-6 max-w-[1200px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1200px] mx-auto">
       <div className="flex items-center gap-3">
         <Megaphone className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">Announcements</h1>

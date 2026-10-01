@@ -82,7 +82,7 @@ export default function CreateP2PPostPage() {
             <label className="text-xs font-medium text-muted-foreground">Your Rate (BDT per 1 USDT)</label>
             <Input type="number" placeholder="e.g. 120" value={rate} onChange={e => setRate(e.target.value)} className="bg-secondary/30 mt-1.5" required />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="text-xs font-medium text-muted-foreground">Min Amount (USDT)</label>
               <Input type="number" placeholder="e.g. 10" value={minAmount} onChange={e => setMinAmount(e.target.value)} className="bg-secondary/30 mt-1.5" required />

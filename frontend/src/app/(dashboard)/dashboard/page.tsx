@@ -45,7 +45,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 sm:p-6">
       <h1 className="text-2xl font-bold tracking-tight">{t("dashboard.title")}</h1>
 
       {/* Total balance + quick actions */}
@@ -114,7 +114,8 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold">{t("dashboard.recent_transactions")}</h2>
         </div>
         <Card className="overflow-hidden p-0">
-          <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full whitespace-nowrap text-left text-sm">
             <thead className="bg-secondary/50 text-muted-foreground">
               <tr>
                 <th className="px-6 py-3 font-medium">{t("wallet.type")}</th>
@@ -142,6 +143,7 @@ export default function DashboardPage() {
               )}
             </tbody>
           </table>
+          </div>
         </Card>
       </div>
     </div>
