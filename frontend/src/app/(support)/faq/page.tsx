@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useLocaleStore } from "@/store/locale-store";
 import { HelpCircle, Search, ChevronDown } from "lucide-react";
@@ -80,7 +81,7 @@ export default function FAQPage() {
 
       <div className="text-center pt-8">
         <p className="text-muted-foreground text-sm">
-          Still have questions? <a href="/support" className="text-primary font-medium hover:underline">Contact our Support Team</a>
+          Still have questions? <Link href="/support" className="text-primary font-medium hover:underline">Contact our Support Team</Link>
         </p>
       </div>
     </div>

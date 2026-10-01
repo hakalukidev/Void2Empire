@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,9 +47,9 @@ export default function SupportPage() {
           </div>
           <h3 className="font-semibold text-lg">Help Center</h3>
           <p className="text-sm text-muted-foreground">Browse our comprehensive guides and FAQs to find answers quickly.</p>
-          <a href="/faq" className="w-full mt-auto">
+          <Link href="/faq" className="w-full mt-auto">
             <Button variant="outline" className="w-full">View FAQ</Button>
-          </a>
+          </Link>
         </Card>
       </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { use, useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -213,7 +214,7 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
 
         <p className="text-[10px] text-center text-muted-foreground">
           By placing an order you agree to the{" "}
-          <a href="/risk-disclosure" className="underline hover:text-foreground">Risk Disclosure</a>.
+          <Link href="/risk-disclosure" className="underline hover:text-foreground">Risk Disclosure</Link>.
         </p>
       </div>
     </div>
