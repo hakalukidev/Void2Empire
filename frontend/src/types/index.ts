@@ -1,3 +1,13 @@
+// Shared contract shapes.
+//
+// Every money, quantity and price value is a DECIMAL STRING (Sec 9.2, Sec46
+// rule #40) — the backend serialises shopspring/decimal as a string, and the
+// frontend must never widen that to a float just to display it. Use
+// @/lib/utils/decimal for arithmetic and clampDecimalPlaces for presentation.
+//
+// Non-money scalars stay numbers: leverage is an integer multiplier, and
+// payoutPercent is a configured rate, not an amount.
+
 export type AccountMode = "demo" | "live";
 
 export interface User {
@@ -13,7 +23,7 @@ export interface User {
 
 export interface Balance {
   mode: AccountMode;
-  available: number;
+  available: string;
   currency: string;
 }
 
@@ -21,8 +31,8 @@ export interface Asset {
   symbol: string;
   name: string;
   category: "forex" | "crypto" | "stocks" | "commodities";
-  price: number;
-  changePercent24h: number;
+  price: string;
+  changePercent24h: string;
 }
 
 export type OrderSide = "buy" | "sell";
@@ -34,10 +44,10 @@ export interface FuturesOrder {
   side: OrderSide;
   type: OrderType;
   leverage: number;
-  margin: number;
-  entryPrice: number;
-  markPrice: number;
-  pnl: number;
+  margin: string;
+  entryPrice: string;
+  markPrice: string;
+  pnl: string;
   status: "open" | "filled" | "cancelled";
   mode: AccountMode;
   createdAt: string;
@@ -49,10 +59,10 @@ export interface BinaryTrade {
   id: string;
   pair: string;
   direction: BinaryDirection;
-  stake: number;
-  entryPrice: number;
+  stake: string;
+  entryPrice: string;
   expiryAt: string;
-  payoutPercent: number;
+  payoutPercent: string;
   status: "active" | "won" | "lost";
   mode: AccountMode;
   createdAt: string;
@@ -64,8 +74,8 @@ export type TransactionStatus = "pending" | "completed" | "failed";
 export interface Transaction {
   id: string;
   type: TransactionType;
-  amount: number;
-  fee: number;
+  amount: string;
+  fee: string;
   status: TransactionStatus;
   createdAt: string;
 }

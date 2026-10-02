@@ -5,15 +5,18 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TradingChart } from "@/components/ui/trading-chart";
+import { SampleBadge } from "@/components/home/sample-badge";
 import { useLocaleStore } from "@/store/locale-store";
-import { isPositiveDecimal, multiplyDecimalStrings } from "@/lib/utils/decimal";
+import { groupDecimalString, isPositiveDecimal, multiplyDecimalStrings } from "@/lib/utils/decimal";
 import {
   fetchSpotTicker,
+  fetchMarketSeries,
   fetchOrderbook,
   fetchRecentTrades,
   fetchOpenOrders,
   placeSpotOrder,
   cancelSpotOrder,
+  type ChartSeriesPoint,
   type SpotTicker,
   type Orderbook,
   type SpotTrade,
@@ -22,14 +25,6 @@ import {
 import type { OrderSide, OrderType } from "@/types";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
-
-const MOCK_CHART_DATA = [
-  { time: "2024-01-01", value: 45000 },
-  { time: "2024-01-02", value: 46000 },
-  { time: "2024-01-03", value: 45500 },
-  { time: "2024-01-04", value: 47000 },
-  { time: "2024-01-05", value: 48000 },
-];
 
 interface PageProps {
   params: Promise<{ pair: string }>;
@@ -41,6 +36,7 @@ export default function SpotTradePage({ params }: PageProps) {
   const { t } = useLocaleStore();
 
   const [ticker, setTicker] = useState<SpotTicker | null>(null);
+  const [series, setSeries] = useState<ChartSeriesPoint[] | undefined>(undefined);
   const [book, setBook] = useState<Orderbook | null>(null);
   const [trades, setTrades] = useState<SpotTrade[]>([]);
   const [orders, setOrders] = useState<SpotOrder[]>([]);
@@ -54,11 +50,13 @@ export default function SpotTradePage({ params }: PageProps) {
   useEffect(() => {
     Promise.all([
       fetchSpotTicker(marketId),
+      fetchMarketSeries(marketId),
       fetchOrderbook(marketId),
       fetchRecentTrades(marketId),
       fetchOpenOrders(),
-    ]).then(([nextTicker, nextBook, nextTrades, nextOrders]) => {
+    ]).then(([nextTicker, nextSeries, nextBook, nextTrades, nextOrders]) => {
       setTicker(nextTicker);
+      setSeries(nextSeries);
       setBook(nextBook);
       setTrades(nextTrades);
       setOrders(nextOrders);
@@ -109,7 +107,7 @@ export default function SpotTradePage({ params }: PageProps) {
         <h1 className="text-xl font-bold tracking-tight">{ticker?.pair ?? marketId}</h1>
         <div>
           <p className="text-xs text-muted-foreground">{t("spot.price")}</p>
-          <p className="font-mono text-lg font-bold">{ticker?.price ?? "—"}</p>
+          <p className="font-mono text-lg font-bold">{ticker ? groupDecimalString(ticker.price) : "—"}</p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground">24h</p>
@@ -117,6 +115,9 @@ export default function SpotTradePage({ params }: PageProps) {
             {ticker?.changePct ?? "—"}
           </p>
         </div>
+        {/* No feed yet (DR-023): price, change, depth, trade prints and the chart
+            below all come from the illustrative sample set. */}
+        <SampleBadge className="ml-auto" />
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-3 sm:p-4 lg:flex-row lg:overflow-hidden">
@@ -131,7 +132,7 @@ export default function SpotTradePage({ params }: PageProps) {
                 <Row key={`a${i}`} level={l} side="sell" />
               ))}
               <div className="my-1 border-y border-border py-1 text-center font-mono text-sm font-bold">
-                {ticker?.price ?? "—"}
+                {ticker ? groupDecimalString(ticker.price) : "—"}
               </div>
               {book?.bids.map((l, i) => <Row key={`b${i}`} level={l} side="buy" />)}
             </div>
@@ -144,7 +145,7 @@ export default function SpotTradePage({ params }: PageProps) {
             <div className="space-y-1 text-xs">
               {trades.map((tr) => (
                 <div key={tr.id} className="flex justify-between font-mono">
-                  <span className={tr.side === "buy" ? "text-success" : "text-danger"}>{tr.price}</span>
+                  <span className={tr.side === "buy" ? "text-success" : "text-danger"}>{groupDecimalString(tr.price)}</span>
                   <span className="text-muted-foreground">{tr.amount}</span>
                   <span className="text-muted-foreground">{tr.time}</span>
                 </div>
@@ -155,7 +156,7 @@ export default function SpotTradePage({ params }: PageProps) {
 
         {/* Chart */}
         <Card className="min-w-0 flex-1 overflow-hidden border-border bg-card">
-          <TradingChart data={MOCK_CHART_DATA} />
+          <TradingChart data={series} symbol={ticker?.pair ?? marketId} />
         </Card>
 
         {/* Order form */}
@@ -213,7 +214,7 @@ export default function SpotTradePage({ params }: PageProps) {
           <div className="flex justify-between rounded-lg border border-border bg-secondary/20 p-3 text-xs">
             <span className="text-muted-foreground">{t("spot.total")}</span>
             <span className="font-mono font-medium text-foreground">
-              {total ? `${total} ${quote}` : "—"}
+              {total ? `${groupDecimalString(total)} ${quote}` : "—"}
             </span>
           </div>
 
@@ -283,7 +284,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Row({ level, side }: { level: { price: string; amount: string }; side: OrderSide }) {
   return (
     <div className="flex justify-between font-mono">
-      <span className={side === "buy" ? "text-success" : "text-danger"}>{level.price}</span>
+      <span className={side === "buy" ? "text-success" : "text-danger"}>{groupDecimalString(level.price)}</span>
       <span className="text-muted-foreground">{level.amount}</span>
     </div>
   );

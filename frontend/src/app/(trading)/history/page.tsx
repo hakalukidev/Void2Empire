@@ -4,29 +4,41 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useLocaleStore } from "@/store/locale-store";
 import { History, TrendingUp, TrendingDown } from "lucide-react";
+import { SampleBadge } from "@/components/home/sample-badge";
+import {
+  absDecimalString,
+  clampDecimalPlaces,
+  compareDecimalStrings,
+  formatDecimalString,
+  multiplyDecimalByInteger,
+} from "@/lib/utils/decimal";
 
 type HistoryTab = "positions" | "orders" | "transactions" | "funding";
 
 import { getMyFundingHistory, FundingHistoryEntry } from "@/services/futures-fees.service";
 import { useEffect } from "react";
 
+// No trading history backend exists yet, so these rows are layout samples and
+// must carry SampleBadge. Money and quantity are decimal STRINGS (Sec46 rule #40)
+// exactly as the backend will return them; nothing here is computed client-side
+// except sign and presentation precision.
 const HISTORY_POSITIONS = [
-  { id: "POS-091", pair: "BTC-USDT", side: "Long",  leverage: 10, entryPrice: 60000, closePrice: 63000, size: 0.1, pnl: 300,   pnlPct: 5.0,  closedAt: "2024-09-20 15:22" },
-  { id: "POS-090", pair: "ETH-USDT", side: "Short", leverage: 5,  entryPrice: 3600,  closePrice: 3500,  size: 0.5, pnl: 50,    pnlPct: 2.78, closedAt: "2024-09-20 11:05" },
-  { id: "POS-089", pair: "SOL-USDT", side: "Long",  leverage: 20, entryPrice: 155,   closePrice: 140,   size: 10,  pnl: -150,  pnlPct: -9.7, closedAt: "2024-09-19 22:40" },
-  { id: "POS-088", pair: "BNB-USDT", side: "Long",  leverage: 3,  entryPrice: 550,   closePrice: 580,   size: 0.2, pnl: 6,     pnlPct: 1.8,  closedAt: "2024-09-19 09:10" },
+  { id: "POS-091", pair: "BTC-USDT", side: "Long",  leverage: 10, entryPrice: "60000", closePrice: "63000", size: "0.1", pnl: "300.00",  pnlPct: "5.00",  closedAt: "2024-09-20 15:22" },
+  { id: "POS-090", pair: "ETH-USDT", side: "Short", leverage: 5,  entryPrice: "3600",  closePrice: "3500",  size: "0.5", pnl: "50.00",   pnlPct: "2.78",  closedAt: "2024-09-20 11:05" },
+  { id: "POS-089", pair: "SOL-USDT", side: "Long",  leverage: 20, entryPrice: "155",   closePrice: "140",   size: "10",  pnl: "-150.00", pnlPct: "-9.70", closedAt: "2024-09-19 22:40" },
+  { id: "POS-088", pair: "BNB-USDT", side: "Long",  leverage: 3,  entryPrice: "550",   closePrice: "580",   size: "0.2", pnl: "6.00",    pnlPct: "1.80",  closedAt: "2024-09-19 09:10" },
 ];
 
 const HISTORY_ORDERS = [
-  { id: "ORD-091", pair: "BTC-USDT", type: "Limit",  side: "Long",  price: 63000, amount: 0.1,  status: "filled",    time: "2024-09-20 15:20" },
-  { id: "ORD-090", pair: "ETH-USDT", type: "Market", side: "Short", price: 3600,  amount: 0.5,  status: "filled",    time: "2024-09-20 10:55" },
-  { id: "ORD-089", pair: "SOL-USDT", type: "Limit",  side: "Long",  price: 160,   amount: 10,   status: "cancelled", time: "2024-09-19 20:00" },
+  { id: "ORD-091", pair: "BTC-USDT", type: "Limit",  side: "Long",  price: "63000", amount: "0.1", status: "filled",    time: "2024-09-20 15:20" },
+  { id: "ORD-090", pair: "ETH-USDT", type: "Market", side: "Short", price: "3600",  amount: "0.5", status: "filled",    time: "2024-09-20 10:55" },
+  { id: "ORD-089", pair: "SOL-USDT", type: "Limit",  side: "Long",  price: "160",   amount: "10",  status: "cancelled", time: "2024-09-19 20:00" },
 ];
 
 const HISTORY_TX = [
-  { id: "TX-012", type: "Deposit",    asset: "USDT", amount: 500,   status: "completed", date: "2024-09-18 10:00" },
-  { id: "TX-011", type: "Withdrawal", asset: "BTC",  amount: 0.01,  status: "completed", date: "2024-09-17 14:30" },
-  { id: "TX-010", type: "Deposit",    asset: "USDT", amount: 1000,  status: "completed", date: "2024-09-15 09:00" },
+  { id: "TX-012", type: "Deposit",    asset: "USDT", amount: "500",  status: "completed", date: "2024-09-18 10:00" },
+  { id: "TX-011", type: "Withdrawal", asset: "BTC",  amount: "0.01", status: "completed", date: "2024-09-17 14:30" },
+  { id: "TX-010", type: "Deposit",    asset: "USDT", amount: "1000", status: "completed", date: "2024-09-15 09:00" },
 ];
 
 const TABS: { key: HistoryTab; label: string }[] = [
@@ -50,6 +62,9 @@ export default function HistoryPage() {
       <div className="flex items-center gap-3">
         <History className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">History</h1>
+        {/* Positions, orders and transactions are still local samples — no trading
+            or ledger backend serves them yet. */}
+        <SampleBadge className="ml-auto" />
       </div>
 
       {/* Tabs */}
@@ -89,7 +104,9 @@ export default function HistoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {HISTORY_POSITIONS.map((p) => (
+                {HISTORY_POSITIONS.map((p) => {
+                  const gain = compareDecimalStrings(p.pnl, "0") >= 0;
+                  return (
                   <tr key={p.id} className="hover:bg-secondary/20 transition-colors">
                     <td className="px-6 py-4 font-bold">{p.pair}</td>
                     <td className={`px-6 py-4 font-semibold ${p.side === "Long" ? "text-success" : "text-danger"}`}>
@@ -102,17 +119,18 @@ export default function HistoryPage() {
                     <td className="px-6 py-4">
                       <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-bold border border-primary/20">{p.leverage}x</span>
                     </td>
-                    <td className="px-6 py-4 font-mono">${p.entryPrice.toLocaleString()}</td>
-                    <td className="px-6 py-4 font-mono">${p.closePrice.toLocaleString()}</td>
+                    <td className="px-6 py-4 font-mono">${formatDecimalString(p.entryPrice, 2)}</td>
+                    <td className="px-6 py-4 font-mono">${formatDecimalString(p.closePrice, 2)}</td>
                     <td className="px-6 py-4">
-                      <div className={p.pnl >= 0 ? "text-success" : "text-danger"}>
-                        <span className="font-bold">{p.pnl >= 0 ? "+" : ""}${p.pnl.toFixed(2)}</span>
-                        <span className="text-xs ml-1 opacity-70">({p.pnlPct >= 0 ? "+" : ""}{p.pnlPct.toFixed(2)}%)</span>
+                      <div className={gain ? "text-success" : "text-danger"}>
+                        <span className="font-bold">{gain ? "+" : "-"}${formatDecimalString(absDecimalString(p.pnl), 2)}</span>
+                        <span className="text-xs ml-1 opacity-70">({gain ? "+" : "-"}{clampDecimalPlaces(absDecimalString(p.pnlPct), 2)}%)</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">{p.closedAt}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             </div>
@@ -141,7 +159,7 @@ export default function HistoryPage() {
                     <td className="px-6 py-4 font-bold">{o.pair}</td>
                     <td className="px-6 py-4 text-muted-foreground">{o.type}</td>
                     <td className={`px-6 py-4 font-semibold ${o.side === "Long" ? "text-success" : "text-danger"}`}>{o.side}</td>
-                    <td className="px-6 py-4 font-mono">${o.price.toLocaleString()}</td>
+                    <td className="px-6 py-4 font-mono">${formatDecimalString(o.price, 2)}</td>
                     <td className="px-6 py-4 font-mono">{o.amount}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${
@@ -202,29 +220,27 @@ export default function HistoryPage() {
                   <th className="px-6 py-4 font-medium">Margin</th>
                   <th className="px-6 py-4 font-medium">Rate</th>
                   <th className="px-6 py-4 font-medium">Amount</th>
-                  <th className="px-6 py-4 font-medium hidden md:table-cell">Company Fee</th>
                   <th className="px-6 py-4 font-medium">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {fundingHistory.length === 0 ? (
-                  <tr><td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">No funding history found.</td></tr>
+                  <tr><td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">No funding history found.</td></tr>
                 ) : fundingHistory.map((f) => {
-                  const isPaid = f.fundingAmount < 0;
+                  const isPaid = compareDecimalStrings(f.fundingAmount, "0") < 0;
                   return (
                     <tr key={f.id} className="hover:bg-secondary/20 transition-colors">
                       <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{f.id}</td>
                       <td className="px-6 py-4 font-bold">{f.pair}</td>
                       <td className={`px-6 py-4 font-semibold ${f.side === "Long" ? "text-success" : "text-danger"}`}>{f.side}</td>
                       <td className="px-6 py-4 font-mono">{f.margin} USDT</td>
-                      <td className="px-6 py-4 font-mono">{(f.fundingRate * 100).toFixed(4)}%</td>
+                      <td className="px-6 py-4 font-mono">{clampDecimalPlaces(multiplyDecimalByInteger(f.fundingRate, 100), 4)}%</td>
                       <td className="px-6 py-4">
                         <span className={`font-mono font-bold ${isPaid ? "text-warning" : "text-success"}`}>
-                          {isPaid ? "" : "+"}{f.fundingAmount.toFixed(4)} USDT
+                          {isPaid ? "-" : "+"}{formatDecimalString(absDecimalString(f.fundingAmount), 4)} USDT
                         </span>
                         <span className="text-[10px] ml-1.5 opacity-60 uppercase">{isPaid ? "Paid" : "Received"}</span>
                       </td>
-                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground hidden md:table-cell">{f.companyFee.toFixed(4)} USDT</td>
                       <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">{f.settledAt}</td>
                     </tr>
                   );

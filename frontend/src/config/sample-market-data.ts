@@ -228,3 +228,12 @@ export function buildSparkline(market: SampleMarket): number[] {
   const candles = buildCandles(market, "1h", 32);
   return candles.map((candle) => candle.close);
 }
+
+/**
+ * The closing line for a trade page's chart. Pages must not hardcode their own
+ * candle arrays: two sources of illustrative prices that disagree with the
+ * header of the same page is worse than one that is clearly labelled.
+ */
+export function buildCloseSeries(market: SampleMarket, interval: ChartInterval = "1h") {
+  return buildCandles(market, interval).map((candle) => ({ time: candle.time, value: candle.close }));
+}
