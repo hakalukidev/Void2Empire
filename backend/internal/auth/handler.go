@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -72,6 +73,50 @@ func (h *Handler) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, toUserResponse(user))
 }
 
+// VerifyEmail checks a 6-digit code. It returns the updated user but issues no
+// session: the code proves control of the inbox, not knowledge of the password.
+func (h *Handler) VerifyEmail(c echo.Context) error {
+	var req VerifyEmailRequest
+	if err := c.Bind(&req); err != nil {
+		return httpx.Error(c, http.StatusBadRequest, "invalid request body")
+	}
+	if err := c.Validate(&req); err != nil {
+		return httpx.Error(c, http.StatusBadRequest, "enter the 6-digit code")
+	}
+
+	user, err := h.service.VerifyEmail(c.Request().Context(), req.Email, req.Code)
+	if err != nil {
+		if errors.Is(err, ErrInvalidCode) {
+			return httpx.ErrorWithCode(c, http.StatusBadRequest, "INVALID_CODE", err.Error())
+		}
+		return httpx.Error(c, http.StatusInternalServerError, "could not verify email")
+	}
+
+	return c.JSON(http.StatusOK, toUserResponse(user))
+}
+
+// ResendVerificationCode answers 204 whether or not the email has an account,
+// so it cannot be used to find out who is registered.
+func (h *Handler) ResendVerificationCode(c echo.Context) error {
+	var req ResendCodeRequest
+	if err := c.Bind(&req); err != nil {
+		return httpx.Error(c, http.StatusBadRequest, "invalid request body")
+	}
+	if err := c.Validate(&req); err != nil {
+		return httpx.Error(c, http.StatusBadRequest, err.Error())
+	}
+
+	if err := h.service.ResendEmailCode(c.Request().Context(), req.Email); err != nil {
+		if errors.Is(err, ErrResendTooSoon) {
+			return httpx.ErrorWithCode(c, http.StatusTooManyRequests, "RATE_LIMITED", err.Error())
+		}
+		log.Printf("auth: resend verification code failed: %v", err)
+		return httpx.Error(c, http.StatusInternalServerError, "could not send code")
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (h *Handler) Logout(c echo.Context) error {
 	c.SetCookie(&http.Cookie{
 		Name:     h.cookie.Name,
@@ -119,12 +164,13 @@ func (h *Handler) setAuthCookie(c echo.Context, token string, expiresAt time.Tim
 
 func toUserResponse(u *models.User) UserResponse {
 	return UserResponse{
-		ID:          u.ID,
-		FullName:    u.FullName,
-		Email:       u.Email,
-		Country:     u.Country,
-		Phone:       u.Phone,
-		KYCVerified: u.KYCVerified,
-		CreatedAt:   u.CreatedAt.Format(time.RFC3339),
+		ID:            u.ID,
+		FullName:      u.FullName,
+		Email:         u.Email,
+		Country:       u.Country,
+		Phone:         u.Phone,
+		KYCVerified:   u.KYCVerified,
+		EmailVerified: u.EmailVerifiedAt != nil,
+		CreatedAt:     u.CreatedAt.Format(time.RFC3339),
 	}
 }

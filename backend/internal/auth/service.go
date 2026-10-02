@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"void2empire/internal/mail"
 	"void2empire/internal/models"
 )
 
@@ -24,10 +25,13 @@ var (
 type Service struct {
 	repo   *Repository
 	tokens *TokenManager
+	mailer mail.Sender
+	// codeKey keys the HMAC that verification codes are stored under.
+	codeKey []byte
 }
 
-func NewService(repo *Repository, tokens *TokenManager) *Service {
-	return &Service{repo: repo, tokens: tokens}
+func NewService(repo *Repository, tokens *TokenManager, mailer mail.Sender, codeKey []byte) *Service {
+	return &Service{repo: repo, tokens: tokens, mailer: mailer, codeKey: codeKey}
 }
 
 func validatePasswordStrength(password string) error {
@@ -60,6 +64,7 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*models.Us
 	if err := s.repo.CreateUser(ctx, user); err != nil {
 		return nil, "", time.Time{}, err
 	}
+	s.sendCodeAfterRegister(ctx, user)
 
 	token, expiresAt, err := s.tokens.Generate(user.ID)
 	if err != nil {

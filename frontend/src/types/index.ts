@@ -7,6 +7,7 @@ export interface User {
   country: string;
   phone: string;
   kycVerified: boolean;
+  emailVerified: boolean;
   createdAt: string;
 }
 

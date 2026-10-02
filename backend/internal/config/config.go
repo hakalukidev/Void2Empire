@@ -40,6 +40,16 @@ type Config struct {
 	// is a private address and the client IP has to come from the header for
 	// per-IP rate limiting to work at all.
 	TrustedProxyCIDRs []*net.IPNet
+
+	// ResendAPIKey sends transactional email (verification codes) through
+	// Resend. Without it, development prints mail to the log instead, and
+	// production refuses to boot (ValidateMail).
+	ResendAPIKey string
+
+	// MailFrom is the sender on every outgoing email. Resend only accepts an
+	// address on a domain verified in its dashboard; its shared
+	// onboarding@resend.dev sender delivers to the account owner's address only.
+	MailFrom string
 }
 
 // Load reads the environment. It returns an error rather than a silent fallback
@@ -73,6 +83,8 @@ func Load() (Config, error) {
 		AllowedOrigins:            splitList(getEnv("FRONTEND_ORIGIN", "http://localhost:3000")),
 		TrustedProxyCIDRs:         cidrs,
 		FeatureRealTradingEnabled: realTrading,
+		ResendAPIKey:              getEnv("RESEND_API_KEY", ""),
+		MailFrom:                  getEnv("MAIL_FROM", "Void2Empire <onboarding@resend.dev>"),
 	}, nil
 }
 
@@ -87,6 +99,15 @@ func (c Config) ValidateAuthSecret() error {
 	}
 	if len(c.JWTSecret) < minJWTSecretBytes {
 		return fmt.Errorf("JWT_SECRET must be at least %d bytes, got %d; generate one with `openssl rand -base64 48`", minJWTSecretBytes, len(c.JWTSecret))
+	}
+	return nil
+}
+
+// ValidateMail rejects a production boot that could not deliver verification
+// codes. Development may run without a key; mail is logged there instead.
+func (c Config) ValidateMail() error {
+	if c.Env == "production" && c.ResendAPIKey == "" {
+		return fmt.Errorf("RESEND_API_KEY is not set; production cannot send verification codes without it")
 	}
 	return nil
 }
