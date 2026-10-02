@@ -242,3 +242,4 @@ export function Logo({ className, iconOnly = false, size = 32, tagline }: LogoPr
     </span>
   );
 }
+

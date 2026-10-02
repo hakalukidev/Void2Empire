@@ -14,6 +14,7 @@ import (
 	"void2empire/internal/auth"
 	"void2empire/internal/config"
 	"void2empire/internal/httpx"
+	"void2empire/internal/mail"
 )
 
 // healthTimeout bounds the database ping inside the health handler. Caddy and
@@ -59,6 +60,9 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	if err := cfg.ValidateAuthSecret(); err != nil {
 		return nil, err
 	}
+	if err := cfg.ValidateMail(); err != nil {
+		return nil, err
+	}
 
 	e := echo.New()
 	e.HideBanner = true
@@ -79,7 +83,15 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 
 	tokens := auth.NewTokenManager(cfg.JWTSecret, cfg.JWTExpiry)
 	authRepo := auth.NewRepository(pool)
-	authService := auth.NewService(authRepo, tokens)
+	// Development without a Resend key prints verification codes to the log;
+	// ValidateMail above keeps production from ever taking that branch.
+	var mailer mail.Sender = mail.Log{}
+	if cfg.ResendAPIKey != "" {
+		mailer = mail.NewResend(cfg.ResendAPIKey, cfg.MailFrom)
+	}
+	// Codes are keyed by the JWT secret, the one server secret there is.
+	// Rotating it voids codes already sent, which the resend button recovers.
+	authService := auth.NewService(authRepo, tokens, mailer, []byte(cfg.JWTSecret))
 	authHandler := auth.NewHandler(authService, auth.CookieOptions{
 		Name:   cfg.CookieName,
 		Domain: cfg.CookieDomain,
@@ -95,6 +107,8 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	authGroup := api.Group("/auth")
 	authGroup.POST("/register", authHandler.Register, credentialLimiter)
 	authGroup.POST("/login", authHandler.Login, credentialLimiter)
+	authGroup.POST("/verify-email", authHandler.VerifyEmail, credentialLimiter)
+	authGroup.POST("/verify-email/resend", authHandler.ResendVerificationCode, credentialLimiter)
 	authGroup.POST("/logout", authHandler.Logout)
 	authGroup.GET("/me", authHandler.Me, auth.RequireAuth(tokens, cfg.CookieName, authRepo))
 

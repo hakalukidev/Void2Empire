@@ -4,6 +4,7 @@ import { useLocaleStore } from "@/store/locale-store";
 import { MarketsList } from "@/components/markets/markets-list";
 import { GainersLosers } from "@/components/markets/gainers-losers";
 import { PositionCalculator } from "@/components/markets/position-calculator";
+import { Suspense } from "react";
 import { LineChart } from "lucide-react";
 
 export default function MarketsPage() {
@@ -17,7 +18,10 @@ export default function MarketsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <MarketsList />
+        {/* MarketsList reads the search params, which needs a boundary to prerender. */}
+        <Suspense>
+          <MarketsList />
+        </Suspense>
         <GainersLosers />
         <PositionCalculator />
       </div>
