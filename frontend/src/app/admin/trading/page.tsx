@@ -5,17 +5,28 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BarChart2, Save, Edit } from "lucide-react";
-import { 
-  getAllFundingConfigs, 
-  updateFundingConfig, 
-  FundingConfig 
+import {
+  getAllFundingConfigs,
+  updateFundingConfig,
+  FundingConfig,
+  FUNDING_RATE,
 } from "@/services/futures-fees.service";
+import { clampDecimalPlaces, divideDecimalByInteger, isPositiveDecimal, multiplyDecimalByInteger } from "@/lib/utils/decimal";
+
+// LEVERAGE_MAX is the client's confirmed answer (v14 Q7: 5x to 50x).
+// Everything else in this page's default state is an UNCONFIRMED placeholder —
+// no spec value and no v14 answer covers it, so it must not be treated as a
+// business rule until the DR items are answered.
+const LEVERAGE_MAX = 50;
 
 export default function AdminTradingSettingsPage() {
-  const [fees, setFees] = useState({ maker: 0.02, taker: 0.04, withdrawEth: 0.005, withdrawUsdt: 1 });
-  const [futures, setFutures] = useState({ defaultLeverage: 10, maxLeverage: 100, minMargin: 10 });
-  const [binary, setBinary] = useState({ defaultPayout: 85, time30s: true, time1m: true, time3m: true, time5m: true, time15m: true });
-  const [risk, setRisk] = useState({ maxOpenPos: 50, maxPosSize: 50000, circuitBreaker: 15 });
+  // Money- and rate-valued fields are decimal STRINGS (Sec46 rule #40); only
+  // genuine counts (leverage multiple, open-position limit) stay numbers. A
+  // Number("0.02") state posts 0.019999999552965164 to the API.
+  const [fees, setFees] = useState({ maker: "0.02", taker: "0.04", withdrawEth: "0.005", withdrawUsdt: "1" });
+  const [futures, setFutures] = useState({ defaultLeverage: 10, maxLeverage: LEVERAGE_MAX, minMargin: "10" });
+  const [binary, setBinary] = useState({ defaultPayout: "85", time30s: true, time1m: true, time3m: true, time5m: true, time15m: true });
+  const [risk, setRisk] = useState({ maxOpenPos: 50, maxPosSize: "50000", circuitBreaker: "15" });
 
   const [fundingConfigs, setFundingConfigs] = useState<FundingConfig[]>([]);
   const [editingFunding, setEditingFunding] = useState<FundingConfig | null>(null);
@@ -35,16 +46,19 @@ export default function AdminTradingSettingsPage() {
 
   const openFundingEdit = (config: FundingConfig) => {
     setEditingFunding(config);
-    setEditRate((config.fundingRate * 100).toString());
-    setEditInterval(config.fundingInterval);
+    // The config stores a decimal fraction; the field shows percent.
+    setEditRate(multiplyDecimalByInteger(config.fundingRate, 100));
+    setEditInterval(config.fundingIntervalHours);
     setEditDirection(config.fundingDirection);
   };
 
   const saveFundingEdit = async () => {
     if (!editingFunding) return;
+    // A non-numeric or non-positive entry must not silently become a 0% rate.
+    if (!isPositiveDecimal(editRate)) return;
     const updates = {
-      fundingRate: parseFloat(editRate) / 100,
-      fundingInterval: editInterval,
+      fundingRate: divideDecimalByInteger(editRate, 100),
+      fundingIntervalHours: editInterval,
       fundingDirection: editDirection,
     };
     await updateFundingConfig(editingFunding.marketId, updates);
@@ -71,15 +85,15 @@ export default function AdminTradingSettingsPage() {
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground">Maker Fee (%)</label>
-              <Input type="number" value={fees.maker} onChange={(e) => setFees({ ...fees, maker: Number(e.target.value) })} className="bg-secondary/30" />
+              <Input type="number" value={fees.maker} onChange={(e) => setFees({ ...fees, maker: e.target.value })} className="bg-secondary/30" />
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Taker Fee (%)</label>
-              <Input type="number" value={fees.taker} onChange={(e) => setFees({ ...fees, taker: Number(e.target.value) })} className="bg-secondary/30" />
+              <Input type="number" value={fees.taker} onChange={(e) => setFees({ ...fees, taker: e.target.value })} className="bg-secondary/30" />
             </div>
             <div className="pt-2">
               <label className="text-xs font-medium text-muted-foreground">Default Withdrawal Fee (USDT)</label>
-              <Input type="number" value={fees.withdrawUsdt} onChange={(e) => setFees({ ...fees, withdrawUsdt: Number(e.target.value) })} className="bg-secondary/30" />
+              <Input type="number" value={fees.withdrawUsdt} onChange={(e) => setFees({ ...fees, withdrawUsdt: e.target.value })} className="bg-secondary/30" />
             </div>
           </div>
         </Card>
@@ -98,7 +112,7 @@ export default function AdminTradingSettingsPage() {
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Minimum Margin (USDT)</label>
-              <Input type="number" value={futures.minMargin} onChange={(e) => setFutures({ ...futures, minMargin: Number(e.target.value) })} className="bg-secondary/30" />
+              <Input type="number" value={futures.minMargin} onChange={(e) => setFutures({ ...futures, minMargin: e.target.value })} className="bg-secondary/30" />
             </div>
           </div>
         </Card>
@@ -109,7 +123,7 @@ export default function AdminTradingSettingsPage() {
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground">Default Payout (%)</label>
-              <Input type="number" value={binary.defaultPayout} onChange={(e) => setBinary({ ...binary, defaultPayout: Number(e.target.value) })} className="bg-secondary/30" />
+              <Input type="number" value={binary.defaultPayout} onChange={(e) => setBinary({ ...binary, defaultPayout: e.target.value })} className="bg-secondary/30" />
             </div>
             <div className="pt-2">
               <label className="text-xs font-medium text-muted-foreground block mb-2">Allowed Expiration Times</label>
@@ -146,11 +160,11 @@ export default function AdminTradingSettingsPage() {
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Max Position Size (USDT Notional)</label>
-              <Input type="number" value={risk.maxPosSize} onChange={(e) => setRisk({ ...risk, maxPosSize: Number(e.target.value) })} className="bg-secondary/30" />
+              <Input type="number" value={risk.maxPosSize} onChange={(e) => setRisk({ ...risk, maxPosSize: e.target.value })} className="bg-secondary/30" />
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Circuit Breaker Price Drop (%)</label>
-              <Input type="number" value={risk.circuitBreaker} onChange={(e) => setRisk({ ...risk, circuitBreaker: Number(e.target.value) })} className="bg-secondary/30" />
+              <Input type="number" value={risk.circuitBreaker} onChange={(e) => setRisk({ ...risk, circuitBreaker: e.target.value })} className="bg-secondary/30" />
             </div>
           </div>
         </Card>
@@ -177,8 +191,8 @@ export default function AdminTradingSettingsPage() {
               {fundingConfigs.map(config => (
                 <tr key={config.marketId} className="hover:bg-secondary/20 transition-colors">
                   <td className="px-5 py-3 font-bold">{config.pair}</td>
-                  <td className="px-5 py-3 font-mono">{(config.fundingRate * 100).toFixed(4)}%</td>
-                  <td className="px-5 py-3">{config.fundingInterval} hours</td>
+                  <td className="px-5 py-3 font-mono">{clampDecimalPlaces(multiplyDecimalByInteger(config.fundingRate, 100), 4)}%</td>
+                  <td className="px-5 py-3">{config.fundingIntervalHours} hours</td>
                   <td className="px-5 py-3 capitalize">{config.fundingDirection === "long_pays_short" ? "Long → Short" : "Short → Long"}</td>
                   <td className="px-5 py-3 text-right">
                     <Button onClick={() => openFundingEdit(config)} variant="secondary" size="sm" className="h-8 gap-1 border-border">
@@ -201,6 +215,14 @@ export default function AdminTradingSettingsPage() {
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Funding Rate (%)</label>
               <Input type="number" step="0.0001" value={editRate} onChange={e => setEditRate(e.target.value)} className="bg-secondary/30" />
+              {/* The client's answer fixes funding at 2% of margin; showing it here keeps
+                  an operator from typing a rate that silently changes that rule. */}
+              <p className="mt-1 text-xs text-muted-foreground">
+                Confirmed by the client (v14 Q10): {multiplyDecimalByInteger(FUNDING_RATE, 100)}% of margin.
+              </p>
+              {!isPositiveDecimal(editRate) && (
+                <p className="mt-1 text-xs text-danger">Enter a positive rate, e.g. 2.</p>
+              )}
             </div>
 
             <div>
@@ -229,7 +251,7 @@ export default function AdminTradingSettingsPage() {
 
             <div className="flex gap-3 pt-2">
               <Button onClick={() => setEditingFunding(null)} variant="secondary" className="flex-1">Cancel</Button>
-              <Button onClick={saveFundingEdit} className="flex-1 bg-primary text-primary-foreground font-bold">Save Changes</Button>
+              <Button onClick={saveFundingEdit} disabled={!isPositiveDecimal(editRate)} className="flex-1 bg-primary text-primary-foreground font-bold">Save Changes</Button>
             </div>
           </Card>
         </div>

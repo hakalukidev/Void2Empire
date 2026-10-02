@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createChart, ColorType, LineSeries } from "lightweight-charts";
+import { createChart, ColorType, LineSeries, type UTCTimestamp } from "lightweight-charts";
+
+/** `time` is a UTC seconds value, or an ISO/business-day string. */
+export interface ChartPoint {
+  time: number | string;
+  value: number;
+}
 
 interface TradingChartProps {
-  data?: { time: string; value: number }[];
+  data?: ChartPoint[];
   /**
    * Pair label for the series. No price feed is wired up yet, so a chart
    * given only a symbol renders the empty grid until one is.
@@ -41,7 +47,13 @@ export function TradingChart({ data, symbol }: TradingChartProps) {
     });
 
     if (data && data.length > 0) {
-       lineSeries.setData(data);
+      lineSeries.setData(
+        data.map((point) =>
+          typeof point.time === "number"
+            ? { ...point, time: point.time as UTCTimestamp }
+            : point
+        ) as Parameters<typeof lineSeries.setData>[0]
+      );
     }
 
     // The container resizes with the layout (sidebar, rotation, stacked panels),

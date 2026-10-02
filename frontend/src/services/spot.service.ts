@@ -11,6 +11,12 @@
 // service, they are never derived client-side.
 
 import type { OrderSide, OrderType } from "@/types";
+import { buildCloseSeries, sampleMarkets } from "@/config/sample-market-data";
+
+export interface ChartSeriesPoint {
+  time: number;
+  value: number;
+}
 
 export interface SpotTicker {
   pair: string;
@@ -62,33 +68,51 @@ export interface PlaceSpotOrderInput {
 }
 
 // ─── STUB DATA ────────────────────────────────────────────────────────────────
+// Illustrative layout data, not quotes. The tickers and the chart series both come
+// from `config/sample-market-data`, so a page can never show a header price that
+// disagrees with its own chart. Pairs with no sample row would have no figure at
+// all, so three crypto rows are kept here as layout samples. The order book and
+// trade prints below are BTC-shaped sample depth served for every pair until the
+// market catalog is consolidated.
 
-const MOCK_TICKERS: Record<string, SpotTicker> = {
-  BTCUSDT: { pair: "BTC/USDT", price: "104312.73", changePct: "-0.53%", up: false },
-  ETHUSDT: { pair: "ETH/USDT", price: "2509.44", changePct: "-0.60%", up: false },
-  SOLUSDT: { pair: "SOL/USDT", price: "168.42", changePct: "+5.31%", up: true },
-  BNBUSDT: { pair: "BNB/USDT", price: "612.08", changePct: "+3.47%", up: true },
-  XRPUSDT: { pair: "XRP/USDT", price: "0.5231", changePct: "+2.18%", up: true },
-};
+const MOCK_TICKERS: Record<string, SpotTicker> = {};
+
+for (const market of sampleMarkets) {
+  const up = market.changePercent24h >= 0;
+  MOCK_TICKERS[market.symbol] = {
+    pair: market.pair,
+    price: market.price.toFixed(market.precision),
+    changePct: `${up ? "+" : ""}${market.changePercent24h.toFixed(2)}%`,
+    up,
+  };
+}
+
+for (const ticker of [
+  { pair: "SOL/USDT", price: "168.42", changePct: "+5.31%", up: true },
+  { pair: "BNB/USDT", price: "612.08", changePct: "+3.47%", up: true },
+  { pair: "XRP/USDT", price: "0.5231", changePct: "+2.18%", up: true },
+]) {
+  MOCK_TICKERS[ticker.pair.replace("/", "")] = ticker;
+}
 
 const MOCK_ORDERBOOK: Orderbook = {
   asks: [
-    { price: "104320.10", amount: "0.412", total: "42979.88" },
-    { price: "104316.55", amount: "1.204", total: "125597.10" },
-    { price: "104313.90", amount: "0.087", total: "9075.31" },
+    { price: "63212.30", amount: "0.412", total: "26043.47" },
+    { price: "63209.80", amount: "1.204", total: "76104.60" },
+    { price: "63207.10", amount: "0.087", total: "5501.02" },
   ],
   bids: [
-    { price: "104312.73", amount: "0.633", total: "66030.06" },
-    { price: "104308.20", amount: "0.951", total: "99197.10" },
-    { price: "104301.05", amount: "2.140", total: "223204.21" },
+    { price: "63204.50", amount: "0.633", total: "40008.45" },
+    { price: "63201.20", amount: "0.951", total: "60104.34" },
+    { price: "63196.80", amount: "2.140", total: "135241.15" },
   ],
 };
 
 const MOCK_TRADES: SpotTrade[] = [
-  { id: "T-9001", price: "104312.73", amount: "0.021", side: "buy", time: "14:22:05" },
-  { id: "T-9000", price: "104311.20", amount: "0.140", side: "sell", time: "14:21:58" },
-  { id: "T-8999", price: "104313.44", amount: "0.008", side: "buy", time: "14:21:41" },
-  { id: "T-8998", price: "104309.90", amount: "0.330", side: "sell", time: "14:21:12" },
+  { id: "T-9001", price: "63204.50", amount: "0.021", side: "buy", time: "14:22:05" },
+  { id: "T-9000", price: "63203.10", amount: "0.140", side: "sell", time: "14:21:58" },
+  { id: "T-8999", price: "63205.40", amount: "0.008", side: "buy", time: "14:21:41" },
+  { id: "T-8998", price: "63201.90", amount: "0.330", side: "sell", time: "14:21:12" },
 ];
 
 let MOCK_OPEN_ORDERS: SpotOrder[] = [];
@@ -99,6 +123,13 @@ let orderCounter = 0;
 export async function fetchSpotTicker(pair: string): Promise<SpotTicker | null> {
   // TODO(backend): GET /markets/{id}
   return MOCK_TICKERS[pair.toUpperCase()] ?? null;
+}
+
+/** Closing series for the page chart; undefined means "no sample row for this pair". */
+export async function fetchMarketSeries(pair: string): Promise<ChartSeriesPoint[] | undefined> {
+  // TODO(backend): GET /markets/{id}/candles
+  const market = sampleMarkets.find((row) => row.symbol === pair.toUpperCase());
+  return market ? buildCloseSeries(market) : undefined;
 }
 
 export async function fetchOrderbook(_pair: string): Promise<Orderbook> {

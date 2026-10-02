@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,29 @@ import { Input } from "@/components/ui/input";
 import { useLocaleStore } from "@/store/locale-store";
 import { useAccountStore } from "@/store/account-store";
 import { TradingChart } from "@/components/ui/trading-chart";
+import { SampleBadge } from "@/components/home/sample-badge";
 import { DemoDisclaimer } from "@/components/ui/demo-disclaimer";
+import {
+  fetchMarketSeries,
+  type ChartSeriesPoint,
+} from "@/services/spot.service";
+import {
+  addDecimalStrings,
+  clampDecimalPlaces,
+  formatDecimalString,
+  isPositiveDecimal,
+  multiplyDecimalByInteger,
+  multiplyDecimalStrings,
+} from "@/lib/utils/decimal";
 import { TrendingUp, TrendingDown, Clock, Activity, FlaskConical } from "lucide-react";
 
+// The expiry options and the payout rate are DR-012/DR-014: the client confirmed
+// a payout BAND and a different expiry set, but the per-asset mapping sits on the
+// v14 pages that did not render. Until those answers are re-sent, 85% stays a
+// placeholder and must not be presented as an approved rate.
+const PAYOUT_RATE = "0.85";
+
+// 3m and 15m are not in the client's stated expiry range.
 const EXPIRATION_TIMES = [
   { label: "1m", value: 60 },
   { label: "3m", value: 180 },
@@ -18,29 +38,27 @@ const EXPIRATION_TIMES = [
   { label: "15m", value: 900 },
 ];
 
-const MOCK_CHART_DATA = [
-  { time: "2024-01-01", value: 45000 },
-  { time: "2024-01-02", value: 46000 },
-  { time: "2024-01-03", value: 45500 },
-  { time: "2024-01-04", value: 47000 },
-  { time: "2024-01-05", value: 48000 },
-];
-
 export default function BinaryTradePage() {
   const { t } = useLocaleStore();
   const params = useParams();
   const pair = typeof params.pair === 'string' ? params.pair.replace('%2D', '-') : "BTC-USDT";
+  const marketId = pair.replace("-", "").toUpperCase();
 
   const mode = useAccountStore((s) => s.mode);
   const demoBalance = useAccountStore((s) => s.demoBalance);
   const isDemo = mode === "demo";
 
+  const [series, setSeries] = useState<ChartSeriesPoint[] | undefined>(undefined);
   const [amount, setAmount] = useState("10");
   const [expiration, setExpiration] = useState(EXPIRATION_TIMES[0].value);
-  
-  const payoutRate = 0.85; // 85% payout
-  const investAmount = parseFloat(amount) || 0;
-  const potentialProfit = investAmount * payoutRate;
+
+  useEffect(() => {
+    fetchMarketSeries(marketId).then(setSeries);
+  }, [marketId]);
+
+  const hasStake = isPositiveDecimal(amount);
+  const potentialProfit = multiplyDecimalStrings(hasStake ? amount : "0", PAYOUT_RATE);
+  const payoutTotal = addDecimalStrings(hasStake ? amount : "0", potentialProfit);
 
   return (
     <div className="flex flex-col gap-4 p-3 sm:p-4 lg:h-[calc(100vh-3.5rem)]">
@@ -65,7 +83,7 @@ export default function BinaryTradePage() {
         {isDemo && (
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">{t("demo.balance")}:</span>
-            <span className="font-bold text-warning">${demoBalance.toLocaleString()}.00</span>
+            <span className="font-bold text-warning">${formatDecimalString(demoBalance, 2)}</span>
           </div>
         )}
       </div>
@@ -74,16 +92,8 @@ export default function BinaryTradePage() {
         {/* Main Chart Area */}
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <Card className="flex-1 bg-card border-border overflow-hidden relative">
-             <div className="absolute top-4 left-4 z-10 flex gap-2">
-                {/* Timeframe selector mock */}
-                <div className="bg-secondary/80 backdrop-blur-sm border border-border p-1 rounded-md flex gap-1 text-xs font-medium">
-                  <button className="px-2 py-1 rounded bg-secondary text-foreground">1s</button>
-                  <button className="px-2 py-1 rounded text-muted-foreground hover:text-foreground">5s</button>
-                  <button className="px-2 py-1 rounded text-muted-foreground hover:text-foreground">15s</button>
-                  <button className="px-2 py-1 rounded text-muted-foreground hover:text-foreground">1m</button>
-                </div>
-             </div>
-             <TradingChart data={MOCK_CHART_DATA} />
+             <SampleBadge className="absolute right-4 top-4 z-10" />
+             <TradingChart data={series} symbol={pair} />
           </Card>
         </div>
 
@@ -116,10 +126,14 @@ export default function BinaryTradePage() {
               <label className="text-sm font-medium text-muted-foreground">{t("binary.amount")}</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input 
-                  type="number"
+                <Input
+                  type="text"
+                  inputMode="decimal"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => {
+                    if (/^\d*\.?\d*$/.test(e.target.value)) setAmount(e.target.value);
+                  }}
+                  aria-invalid={!hasStake}
                   className="pl-7 bg-secondary/30 text-lg font-bold"
                 />
               </div>
@@ -127,22 +141,22 @@ export default function BinaryTradePage() {
 
             <div className="p-4 bg-secondary/30 rounded-lg border border-border space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("binary.payout")} ({(payoutRate * 100).toFixed(0)}%)</span>
-                <span className="font-semibold">${(investAmount + potentialProfit).toFixed(2)}</span>
+                <span className="text-muted-foreground">{t("binary.payout")} ({clampDecimalPlaces(multiplyDecimalByInteger(PAYOUT_RATE, 100), 0)}%)</span>
+                <span className="font-semibold">${formatDecimalString(payoutTotal, 2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t("binary.profit")}</span>
-                <span className="font-bold text-success">+${potentialProfit.toFixed(2)}</span>
+                <span className="font-bold text-success">+${formatDecimalString(potentialProfit, 2)}</span>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 mt-auto pt-2 lg:pt-6">
-             <Button className="h-16 sm:h-20 bg-success hover:bg-success/90 text-success-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-success-focus active:border-b-0 active:translate-y-1 transition-all">
+             <Button disabled={!hasStake} className="h-16 sm:h-20 bg-success hover:bg-success/90 text-success-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-success-focus active:border-b-0 active:translate-y-1 transition-all">
                 <TrendingUp className="w-6 h-6" />
                 {t("binary.up")}
              </Button>
-             <Button className="h-16 sm:h-20 bg-danger hover:bg-danger/90 text-danger-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-danger-focus active:border-b-0 active:translate-y-1 transition-all">
+             <Button disabled={!hasStake} className="h-16 sm:h-20 bg-danger hover:bg-danger/90 text-danger-fg text-lg font-bold flex flex-col gap-1 border-b-4 border-danger-focus active:border-b-0 active:translate-y-1 transition-all">
                 <TrendingDown className="w-6 h-6" />
                 {t("binary.down")}
              </Button>

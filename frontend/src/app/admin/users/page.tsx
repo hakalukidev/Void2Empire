@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Users, ShieldCheck, ShieldAlert, TrendingUp, MoreHorizontal } from "lucide-react";
+import { formatDecimalString } from "@/lib/utils/decimal";
 
 type UserStatus = "active" | "suspended" | "banned" | "pending_verification";
 type KycStatus = "verified" | "unverified" | "pending" | "rejected";
@@ -12,17 +13,17 @@ type KycStatus = "verified" | "unverified" | "pending" | "rejected";
 interface AdminUser {
   id: string; name: string; email: string; country: string;
   status: UserStatus; kyc: KycStatus; tradingEnabled: boolean;
-  balance: number; demoBalance: number; joined: string;
+  balance: string; demoBalance: string; joined: string;
 }
 
 const MOCK_USERS: AdminUser[] = [
-  { id: "U001", name: "Rafiq Ahmed",    email: "rafiq@example.com",    country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: 2400,  demoBalance: 10000, joined: "2024-09-01" },
-  { id: "U002", name: "Tahmina Begum",  email: "tahmina@example.com",  country: "BD", status: "active",    kyc: "pending",    tradingEnabled: false, balance: 500,   demoBalance: 10000, joined: "2024-09-10" },
-  { id: "U003", name: "Karim Hossain",  email: "karim@example.com",    country: "BD", status: "active",    kyc: "unverified", tradingEnabled: false, balance: 0,     demoBalance: 10000, joined: "2024-09-15" },
-  { id: "U004", name: "Sadia Islam",    email: "sadia@example.com",    country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: 8200,  demoBalance: 10000, joined: "2024-09-18" },
-  { id: "U005", name: "Arif Chowdhury", email: "arif@example.com",     country: "BD", status: "suspended", kyc: "rejected",   tradingEnabled: false, balance: 100,   demoBalance: 10000, joined: "2024-09-19" },
-  { id: "U006", name: "Nasrin Akter",   email: "nasrin@example.com",   country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: 15000, demoBalance: 10000, joined: "2024-09-20" },
-  { id: "U007", name: "Jamal Uddin",    email: "jamal@example.com",    country: "BD", status: "banned",    kyc: "rejected",   tradingEnabled: false, balance: 0,     demoBalance: 10000, joined: "2024-09-20" },
+  { id: "U001", name: "Rafiq Ahmed",    email: "rafiq@example.com",    country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: "2400",  demoBalance: "10000", joined: "2024-09-01" },
+  { id: "U002", name: "Tahmina Begum",  email: "tahmina@example.com",  country: "BD", status: "active",    kyc: "pending",    tradingEnabled: false, balance: "500",   demoBalance: "10000", joined: "2024-09-10" },
+  { id: "U003", name: "Karim Hossain",  email: "karim@example.com",    country: "BD", status: "active",    kyc: "unverified", tradingEnabled: false, balance: "0",     demoBalance: "10000", joined: "2024-09-15" },
+  { id: "U004", name: "Sadia Islam",    email: "sadia@example.com",    country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: "8200",  demoBalance: "10000", joined: "2024-09-18" },
+  { id: "U005", name: "Arif Chowdhury", email: "arif@example.com",     country: "BD", status: "suspended", kyc: "rejected",   tradingEnabled: false, balance: "100",   demoBalance: "10000", joined: "2024-09-19" },
+  { id: "U006", name: "Nasrin Akter",   email: "nasrin@example.com",   country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: "15000", demoBalance: "10000", joined: "2024-09-20" },
+  { id: "U007", name: "Jamal Uddin",    email: "jamal@example.com",    country: "BD", status: "banned",    kyc: "rejected",   tradingEnabled: false, balance: "0",     demoBalance: "10000", joined: "2024-09-20" },
 ];
 
 const STATUS_STYLE: Record<UserStatus, string> = {
@@ -149,7 +150,7 @@ export default function AdminUsersPage() {
                     </button>
                   </td>
                   <td className="px-5 py-4 text-right font-mono font-medium">
-                    ${user.balance.toLocaleString()}
+                    ${formatDecimalString(user.balance, 2)}
                   </td>
                   <td className="px-5 py-4 text-xs text-muted-foreground hidden lg:table-cell">{user.joined}</td>
                   <td className="px-5 py-4 text-right">

@@ -67,6 +67,37 @@ export function multiplyDecimalStrings(a: string, b: string): string {
   return format(neg ? -product : product, scale);
 }
 
+/**
+ * Presentation only: pad or truncate a decimal string to `places` fractional
+ * digits WITHOUT rounding, so a preview never shows more precision than it
+ * holds. The amount actually charged is computed and rounded server-side
+ * (DR-047), so this must never feed a calculation.
+ */
+export function clampDecimalPlaces(value: string, places: number): string {
+  if (!DECIMAL_RE.test(value) || !Number.isInteger(places) || places < 0) return value;
+  const { neg, int, frac } = split(value);
+  const kept = frac.slice(0, places).padEnd(places, "0");
+  return `${neg ? "-" : ""}${places > 0 ? `${int}.${kept}` : int}`;
+}
+
+/**
+ * Presentation only: clampDecimalPlaces plus thousands separators. The comma is
+ * not a valid decimal character, so this output is for reading, never for input
+ * fields or for anything that gets parsed again.
+ */
+export function groupDecimalString(value: string): string {
+  const neg = value.startsWith("-");
+  const [int, frac] = (neg ? value.slice(1) : value).split(".");
+  if (!/^\d+$/.test(int ?? "")) return value;
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${neg ? "-" : ""}${frac === undefined ? grouped : `${grouped}.${frac}`}`;
+}
+
+/** clampDecimalPlaces + groupDecimalString, for displaying a money amount. */
+export function formatDecimalString(value: string, places: number): string {
+  return groupDecimalString(clampDecimalPlaces(value, places));
+}
+
 /** True when the string is a well-formed, strictly positive decimal amount. */
 export function isPositiveDecimal(value: string): boolean {
   if (!DECIMAL_RE.test(value)) return false;
