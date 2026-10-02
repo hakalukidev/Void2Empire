@@ -157,3 +157,24 @@ func TestValidateMail(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateGoogle(t *testing.T) {
+	cases := []struct {
+		name    string
+		cfg     Config
+		wantErr bool
+	}{
+		{name: "off", cfg: Config{}},
+		{name: "complete", cfg: Config{GoogleClientID: "id", GoogleClientSecret: "secret", GoogleRedirectURL: "http://localhost/cb"}},
+		{name: "missing secret", cfg: Config{GoogleClientID: "id", GoogleRedirectURL: "http://localhost/cb"}, wantErr: true},
+		{name: "missing redirect", cfg: Config{GoogleClientID: "id", GoogleClientSecret: "secret"}, wantErr: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if err := tc.cfg.ValidateGoogle(); (err != nil) != tc.wantErr {
+				t.Fatalf("ValidateGoogle() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
+	}
+}

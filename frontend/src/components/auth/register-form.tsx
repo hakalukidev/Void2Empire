@@ -13,6 +13,7 @@ import { countries } from "@/config/countries";
 import { useAuthStore } from "@/store/auth-store";
 import { useInAuthModal } from "@/components/auth/auth-context";
 import { AuthHeader, Field, IconInput, PasswordInput, SubmitButton } from "@/components/auth/fields";
+import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
 import { PasswordStrength } from "@/components/auth/password-strength";
 import { PhoneInput, findCountry } from "@/components/ui/phone-input";
 import { CountryFlag } from "@/components/ui/country-flag";
@@ -70,6 +71,9 @@ export function RegisterForm() {
         title="Create your account"
         subtitle="Start with a $10,000 demo balance. No card required."
       />
+
+      <GoogleButton label="Sign up with Google" />
+      <AuthDivider />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <Field label="Full name" htmlFor="register-name" error={errors.fullName?.message}>

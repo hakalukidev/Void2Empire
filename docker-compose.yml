@@ -54,6 +54,9 @@ services:
       # key, so a VPS .env missing it fails the deploy's health gate loudly.
       RESEND_API_KEY: ${RESEND_API_KEY}
       MAIL_FROM: ${MAIL_FROM}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: https://${APP_DOMAIN}/api/auth/google/callback
     depends_on:
       postgres:
         condition: service_healthy

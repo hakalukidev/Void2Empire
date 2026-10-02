@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -63,6 +64,9 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	if err := cfg.ValidateMail(); err != nil {
 		return nil, err
 	}
+	if err := cfg.ValidateGoogle(); err != nil {
+		return nil, err
+	}
 
 	e := echo.New()
 	e.HideBanner = true
@@ -92,11 +96,15 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	// Codes are keyed by the JWT secret, the one server secret there is.
 	// Rotating it voids codes already sent, which the resend button recovers.
 	authService := auth.NewService(authRepo, tokens, mailer, []byte(cfg.JWTSecret))
+	google := auth.GoogleOptions{FrontendURL: frontendURL(cfg)}
+	if cfg.GoogleEnabled() {
+		google.Client = auth.NewGoogleClient(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURL)
+	}
 	authHandler := auth.NewHandler(authService, auth.CookieOptions{
 		Name:   cfg.CookieName,
 		Domain: cfg.CookieDomain,
 		Secure: cfg.CookieSecure,
-	})
+	}, google)
 
 	// Only the credential endpoints are limited. /me runs on every page load and
 	// /logout is a plain navigation away, so a per-IP budget there would lock
@@ -110,9 +118,20 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	authGroup.POST("/verify-email", authHandler.VerifyEmail, credentialLimiter)
 	authGroup.POST("/verify-email/resend", authHandler.ResendVerificationCode, credentialLimiter)
 	authGroup.POST("/logout", authHandler.Logout)
+	authGroup.GET("/google", authHandler.GoogleStart, credentialLimiter)
+	authGroup.GET("/google/callback", authHandler.GoogleCallback, credentialLimiter)
 	authGroup.GET("/me", authHandler.Me, auth.RequireAuth(tokens, cfg.CookieName, authRepo))
 
 	return e, nil
+}
+
+// frontendURL is where browser redirects (Google sign-in) land: the first
+// allowed origin, which is the site itself in every environment.
+func frontendURL(cfg config.Config) string {
+	if len(cfg.AllowedOrigins) == 0 {
+		return ""
+	}
+	return strings.TrimSuffix(cfg.AllowedOrigins[0], "/")
 }
 
 // ipExtractor trusts X-Forwarded-For only from peers we believe. In production
