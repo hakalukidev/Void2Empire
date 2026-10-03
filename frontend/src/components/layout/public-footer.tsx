@@ -1,48 +1,52 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+import { useLocaleStore } from "@/store/locale-store";
 
 const columns = [
   {
-    title: "Product",
+    titleKey: "footer.product",
     links: [
-      { href: "/trade/futures/BTCUSDT", label: "Futures trading" },
-      { href: "/trade/binary/BTCUSDT", label: "Binary options" },
-      { href: "/trade/demo", label: "Demo account" },
-      { href: "/markets", label: "Markets" },
+      { href: "/trade/spot/BTCUSDT", labelKey: "footer.spot" },
+      { href: "/trade/futures/BTCUSDT", labelKey: "footer.futures" },
+      { href: "/trade/binary/BTCUSDT", labelKey: "footer.binary" },
+      { href: "/trade/demo", labelKey: "footer.demo" },
+      { href: "/markets", labelKey: "footer.markets" },
     ],
   },
   {
-    title: "Support",
+    titleKey: "footer.support",
     links: [
-      { href: "/faq", label: "FAQ" },
-      { href: "/announcements", label: "Announcements" },
-      { href: "/support", label: "Contact support" },
+      { href: "/faq", labelKey: "footer.faq" },
+      { href: "/announcements", labelKey: "footer.announcements" },
+      { href: "/support", labelKey: "footer.contact_support" },
     ],
   },
   {
-    title: "Legal",
+    titleKey: "footer.legal",
     links: [
-      { href: "/terms", label: "Terms & Conditions" },
-      { href: "/privacy", label: "Privacy Policy" },
-      { href: "/risk-disclosure", label: "Risk Disclosure" },
+      { href: "/terms", labelKey: "footer.terms" },
+      { href: "/privacy", labelKey: "footer.privacy" },
+      { href: "/risk-disclosure", labelKey: "footer.risk_disclosure" },
     ],
   },
 ];
 
 export function PublicFooter() {
+  const { t } = useLocaleStore();
+
   return (
     <footer className="border-t border-border">
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
             <Logo tagline="Trade · Grow · Rule" />
-            <p className="mt-2 text-sm text-muted-foreground">
-              Futures and binary options trading, with a risk-free demo account.
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("footer.blurb")}</p>
           </div>
           {columns.map((col) => (
-            <div key={col.title}>
-              <h3 className="text-sm font-semibold">{col.title}</h3>
+            <div key={col.titleKey}>
+              <h3 className="text-sm font-semibold">{t(col.titleKey)}</h3>
               <ul className="mt-3 space-y-2">
                 {col.links.map((link) => (
                   <li key={link.href}>
@@ -50,7 +54,7 @@ export function PublicFooter() {
                       href={link.href}
                       className="text-sm text-muted-foreground hover:text-foreground"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </Link>
                   </li>
                 ))}
@@ -61,9 +65,7 @@ export function PublicFooter() {
 
         <div className="mt-10 border-t border-border pt-6 text-xs text-muted-foreground">
           <p>
-            © {new Date().getFullYear()} Void2Empire. Trading futures and binary options
-            carries a high level of risk and may not be suitable for all investors. Only trade
-            with funds you can afford to lose.
+            © {new Date().getFullYear()} Void2Empire. {t("footer.risk_note")}
           </p>
         </div>
       </div>

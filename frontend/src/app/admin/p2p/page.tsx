@@ -1,43 +1,60 @@
 "use client";
 
-import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeftRight, CheckCircle2, XCircle } from "lucide-react";
+import { SampleBadge } from "@/components/home/sample-badge";
+import { ArrowLeftRight, ShieldAlert } from "lucide-react";
+import type { OrderStatus } from "@/services/p2p.service";
 
-type P2PStatus = "active" | "completed" | "disputed";
+// P2P is USDT-only (REQ-111) — no other asset may appear in this table.
+interface AdminP2PTrade {
+  id: string;
+  seller: string;
+  buyer: string;
+  asset: "USDT";
+  amount: string; // decimal string (Sec46 rule #40)
+  rate: string; // fiat per 1 USDT, set by the post creator (REQ-125)
+  totalFiat: string;
+  method: string;
+  status: OrderStatus;
+  date: string;
+}
 
-const MOCK_P2P = [
-  { id: "P2P-1", seller: "Rafiq Ahmed", buyer: "Jane Doe", asset: "USDT", amount: 100, price: 120, method: "bKash", status: "disputed" as P2PStatus, date: "2024-09-21" },
-  { id: "P2P-2", seller: "Karim Hossain", buyer: "John Smith", asset: "BTC", amount: 0.1, price: 65000, method: "Bank Transfer", status: "completed" as P2PStatus, date: "2024-09-20" },
-  { id: "P2P-3", seller: "Sadia Islam", buyer: "-", asset: "USDT", amount: 50, price: 119, method: "Nagad", status: "active" as P2PStatus, date: "2024-09-21" },
+const MOCK_P2P: AdminP2PTrade[] = [
+  { id: "P2P-1", seller: "Rafiq Ahmed", buyer: "Jane Doe", asset: "USDT", amount: "100", rate: "120", totalFiat: "12000", method: "bKash", status: "disputed", date: "2024-09-21" },
+  { id: "P2P-2", seller: "Karim Hossain", buyer: "John Smith", asset: "USDT", amount: "250", rate: "119", totalFiat: "29750", method: "Bank Transfer", status: "paid", date: "2024-09-20" },
+  { id: "P2P-3", seller: "Sadia Islam", buyer: "—", asset: "USDT", amount: "50", rate: "121", totalFiat: "6050", method: "Nagad", status: "pending", date: "2024-09-21" },
+  { id: "P2P-4", seller: "Nasrin Pro", buyer: "Amin R.", asset: "USDT", amount: "1000", rate: "118", totalFiat: "118000", method: "bKash", status: "completed", date: "2024-09-19" },
 ];
 
-const STATUS_STYLE: Record<P2PStatus, string> = {
-  active: "bg-primary/10 text-primary border-primary/20",
+const STATUS_STYLE: Record<OrderStatus, string> = {
+  pending: "bg-warning/10 text-warning border-warning/20",
+  paid: "bg-primary/10 text-primary border-primary/20",
+  released: "bg-success/10 text-success border-success/20",
   completed: "bg-success/10 text-success border-success/20",
+  cancelled: "bg-secondary/50 text-muted-foreground border-border",
   disputed: "bg-danger/10 text-danger border-danger/20",
 };
 
 export default function AdminP2PPage() {
-  const [trades, setTrades] = useState(MOCK_P2P);
-
-  const resolveDispute = (id: string, winner: "buyer" | "seller") => {
-    // In a real app, this would release funds to the winner
-    setTrades(prev => prev.map(t => t.id === id ? { ...t, status: "completed" as P2PStatus } : t));
-  };
-
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-[1200px] mx-auto">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <ArrowLeftRight className="w-6 h-6 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">P2P Management</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">P2P Management</h1>
+          <p className="text-sm text-muted-foreground">Permission: p2p.manage</p>
+        </div>
+        <SampleBadge className="ml-auto" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card className="p-4 bg-card border-border"><p className="text-xs text-muted-foreground">Active Listings</p><p className="text-2xl font-bold">124</p></Card>
-        <Card className="p-4 bg-card border-border border-l-4 border-l-danger"><p className="text-xs text-muted-foreground">Open Disputes</p><p className="text-2xl font-bold text-danger">3</p></Card>
-        <Card className="p-4 bg-card border-border border-l-4 border-l-success"><p className="text-xs text-muted-foreground">Completed Today</p><p className="text-2xl font-bold text-success">45</p></Card>
+      {/* No P2P backend exists yet, so the counters above the table would be invented totals. */}
+      <div className="flex gap-2 p-3 bg-secondary/30 rounded-lg border border-border text-xs text-muted-foreground">
+        <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-danger" />
+        <p>
+          Disputes are listed here, but their outcome rules are not settled: the client&apos;s P2P
+          document cuts off mid-sentence exactly at the fake-payment / refund / cancellation rule
+          (DR-064), so no resolution action is offered until that is provided.
+        </p>
       </div>
 
       <Card className="overflow-hidden bg-card border-border">
@@ -45,39 +62,34 @@ export default function AdminP2PPage() {
           <table className="w-full text-sm text-left">
             <thead className="bg-secondary/50 text-muted-foreground">
               <tr>
-                <th className="px-5 py-4 font-medium">Trade ID</th>
+                <th className="px-5 py-4 font-medium">Order ID</th>
                 <th className="px-5 py-4 font-medium">Seller / Buyer</th>
-                <th className="px-5 py-4 font-medium">Asset & Amount</th>
-                <th className="px-5 py-4 font-medium">Price (Fiat)</th>
+                <th className="px-5 py-4 font-medium">Amount</th>
+                <th className="px-5 py-4 font-medium">Rate</th>
+                <th className="px-5 py-4 font-medium">Total (Fiat)</th>
                 <th className="px-5 py-4 font-medium">Method</th>
                 <th className="px-5 py-4 font-medium">Status</th>
-                <th className="px-5 py-4 font-medium text-right">Actions</th>
+                <th className="px-5 py-4 font-medium">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {trades.map((t) => (
+              {MOCK_P2P.map((t) => (
                 <tr key={t.id} className="hover:bg-secondary/20 transition-colors">
                   <td className="px-5 py-4 font-mono text-xs text-muted-foreground">{t.id}</td>
                   <td className="px-5 py-4">
                     <div className="text-sm font-semibold">{t.seller}</div>
                     <div className="text-xs text-muted-foreground">→ {t.buyer}</div>
                   </td>
-                  <td className="px-5 py-4 font-bold">{t.amount} <span className="text-primary">{t.asset}</span></td>
-                  <td className="px-5 py-4 font-mono">{t.price}</td>
+                  <td className="px-5 py-4 font-mono font-bold">{t.amount} <span className="text-primary">{t.asset}</span></td>
+                  <td className="px-5 py-4 font-mono">{t.rate}</td>
+                  <td className="px-5 py-4 font-mono">{t.totalFiat} BDT</td>
                   <td className="px-5 py-4 text-muted-foreground">{t.method}</td>
                   <td className="px-5 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${STATUS_STYLE[t.status]}`}>
                       {t.status}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-right">
-                    {t.status === "disputed" ? (
-                      <div className="flex justify-end gap-2">
-                        <Button size="sm" className="h-7 text-xs bg-primary" onClick={() => resolveDispute(t.id, "buyer")}>Favor Buyer</Button>
-                        <Button size="sm" variant="secondary" className="h-7 text-xs text-muted-foreground" onClick={() => resolveDispute(t.id, "seller")}>Favor Seller</Button>
-                      </div>
-                    ) : <span className="text-xs text-muted-foreground">—</span>}
-                  </td>
+                  <td className="px-5 py-4 text-xs text-muted-foreground">{t.date}</td>
                 </tr>
               ))}
             </tbody>

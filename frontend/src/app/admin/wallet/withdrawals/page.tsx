@@ -3,16 +3,21 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SampleBadge } from "@/components/home/sample-badge";
+import { addDecimalStrings, formatDecimalString } from "@/lib/utils/decimal";
 import { ArrowUpCircle, CheckCircle2, XCircle, Clock, Copy } from "lucide-react";
 
 type WithdrawalStatus = "pending" | "completed" | "failed" | "processing";
 
+// Layout samples — no withdrawal backend serves these rows. Amounts and fees are
+// decimal STRINGS (Sec46 rule #40); the fee column shows whatever the sample
+// says, it is not a confirmed rate (the client has not stated one).
 const MOCK_WITHDRAWALS = [
-  { id: "WD-001", user: "Rafiq Ahmed",   email: "rafiq@example.com",   asset: "USDT", amount: 200,  address: "TRX9...xQ4m", network: "TRC20",  fee: 1,    status: "pending"    as WithdrawalStatus, date: "2024-09-21 18:00" },
-  { id: "WD-002", user: "Sadia Islam",   email: "sadia@example.com",   asset: "BTC",  amount: 0.005,address: "1A2B...9K3L", network: "Bitcoin", fee: 0.0001, status: "processing" as WithdrawalStatus, date: "2024-09-21 16:30" },
-  { id: "WD-003", user: "Nasrin Akter",  email: "nasrin@example.com",  asset: "USDT", amount: 500,  address: "TRX7...mN2p", network: "TRC20",  fee: 1,    status: "completed"  as WithdrawalStatus, date: "2024-09-21 14:00" },
-  { id: "WD-004", user: "Arif Chowdhury",email: "arif@example.com",    asset: "ETH",  amount: 0.2,  address: "0x3F...7a9d", network: "ERC20",  fee: 0.002,status: "pending"    as WithdrawalStatus, date: "2024-09-20 12:00" },
-  { id: "WD-005", user: "Jamal Uddin",   email: "jamal@example.com",   asset: "USDT", amount: 50,   address: "TRX2...kK8q", network: "TRC20",  fee: 1,    status: "failed"     as WithdrawalStatus, date: "2024-09-20 09:00" },
+  { id: "WD-001", user: "Rafiq Ahmed",   email: "rafiq@example.com",   asset: "USDT", amount: "200",   address: "TRX9...xQ4m", network: "TRC20",  fee: "1",      status: "pending"    as WithdrawalStatus, date: "2024-09-21 18:00" },
+  { id: "WD-002", user: "Sadia Islam",   email: "sadia@example.com",   asset: "BTC",  amount: "0.005", address: "1A2B...9K3L", network: "Bitcoin", fee: "0.0001", status: "processing" as WithdrawalStatus, date: "2024-09-21 16:30" },
+  { id: "WD-003", user: "Nasrin Akter",  email: "nasrin@example.com",  asset: "USDT", amount: "500",   address: "TRX7...mN2p", network: "TRC20",  fee: "1",      status: "completed"  as WithdrawalStatus, date: "2024-09-21 14:00" },
+  { id: "WD-004", user: "Arif Chowdhury",email: "arif@example.com",    asset: "ETH",  amount: "0.2",   address: "0x3F...7a9d", network: "ERC20",  fee: "0.002",  status: "pending"    as WithdrawalStatus, date: "2024-09-20 12:00" },
+  { id: "WD-005", user: "Jamal Uddin",   email: "jamal@example.com",   asset: "USDT", amount: "50",    address: "TRX2...kK8q", network: "TRC20",  fee: "1",      status: "failed"     as WithdrawalStatus, date: "2024-09-20 09:00" },
 ];
 
 const STATUS_STYLE: Record<WithdrawalStatus, string> = {
@@ -27,9 +32,13 @@ export default function AdminWithdrawalsPage() {
   const [withdrawals, setWithdrawals] = useState(MOCK_WITHDRAWALS);
 
   const filtered = statusFilter === "all" ? withdrawals : withdrawals.filter((w) => w.status === statusFilter);
-  const pendingValue = withdrawals.filter(w => w.status === "pending" && w.asset === "USDT").reduce((sum, w) => sum + w.amount, 0);
+  const pendingValue = addDecimalStrings(
+    ...withdrawals.filter((w) => w.status === "pending" && w.asset === "USDT").map((w) => w.amount)
+  );
   const pendingCount = withdrawals.filter(w => w.status === "pending" || w.status === "processing").length;
-  const totalWithdrawn = withdrawals.filter(w => w.status === "completed" && w.asset === "USDT").reduce((sum, w) => sum + w.amount, 0);
+  const totalWithdrawn = addDecimalStrings(
+    ...withdrawals.filter((w) => w.status === "completed" && w.asset === "USDT").map((w) => w.amount)
+  );
 
   const approve = (id: string) => setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status: "processing" as WithdrawalStatus } : w));
   const reject  = (id: string) => setWithdrawals(prev => prev.map(w => w.id === id ? { ...w, status: "failed"     as WithdrawalStatus } : w));
@@ -39,13 +48,14 @@ export default function AdminWithdrawalsPage() {
       <div className="flex items-center gap-3">
         <ArrowUpCircle className="w-6 h-6 text-warning" />
         <h1 className="text-2xl font-bold tracking-tight">Withdrawals</h1>
+        <SampleBadge className="ml-auto" />
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card className="p-5 bg-card border-border border-l-4 border-l-warning">
           <p className="text-xs text-muted-foreground mb-1">Pending Value (USDT)</p>
-          <p className="text-2xl font-bold text-warning">${pendingValue.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-warning">${formatDecimalString(pendingValue, 2)}</p>
         </Card>
         <Card className="p-5 bg-card border-border border-l-4 border-l-primary">
           <p className="text-xs text-muted-foreground mb-1">Pending / Processing</p>
@@ -53,7 +63,7 @@ export default function AdminWithdrawalsPage() {
         </Card>
         <Card className="p-5 bg-card border-border border-l-4 border-l-success">
           <p className="text-xs text-muted-foreground mb-1">Total Withdrawn (USDT)</p>
-          <p className="text-2xl font-bold">${totalWithdrawn.toLocaleString()}</p>
+          <p className="text-2xl font-bold">${formatDecimalString(totalWithdrawn, 2)}</p>
         </Card>
       </div>
 

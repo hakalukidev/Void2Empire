@@ -11,7 +11,14 @@ import {
   FundingConfig,
   FUNDING_RATE,
 } from "@/services/futures-fees.service";
-import { clampDecimalPlaces, divideDecimalByInteger, isPositiveDecimal, multiplyDecimalByInteger } from "@/lib/utils/decimal";
+import { clampDecimalPlaces, divideDecimalByInteger, formatDecimalString, isPositiveDecimal, multiplyDecimalByInteger } from "@/lib/utils/decimal";
+import { cn } from "@/lib/utils/cn";
+import {
+  BINARY_MAX_STAKE,
+  BINARY_MIN_STAKE,
+  BINARY_PAYOUT_RATES,
+  DEFAULT_BINARY_EXPIRIES,
+} from "@/services/binary.service";
 
 // LEVERAGE_MAX is the client's confirmed answer (v14 Q7: 5x to 50x).
 // Everything else in this page's default state is an UNCONFIRMED placeholder —
@@ -25,7 +32,10 @@ export default function AdminTradingSettingsPage() {
   // Number("0.02") state posts 0.019999999552965164 to the API.
   const [fees, setFees] = useState({ maker: "0.02", taker: "0.04", withdrawEth: "0.005", withdrawUsdt: "1" });
   const [futures, setFutures] = useState({ defaultLeverage: 10, maxLeverage: LEVERAGE_MAX, minMargin: "10" });
-  const [binary, setBinary] = useState({ defaultPayout: "85", time30s: true, time1m: true, time3m: true, time5m: true, time15m: true });
+  const [binary, setBinary] = useState({
+    payoutRate: "0.85",
+    expiries: DEFAULT_BINARY_EXPIRIES.map((e) => e.seconds),
+  });
   const [risk, setRisk] = useState({ maxOpenPos: 50, maxPosSize: "50000", circuitBreaker: "15" });
 
   const [fundingConfigs, setFundingConfigs] = useState<FundingConfig[]>([]);
@@ -121,32 +131,71 @@ export default function AdminTradingSettingsPage() {
         <Card className="p-5 bg-card border-border space-y-4">
           <h2 className="font-semibold text-lg border-b border-border pb-2">Binary Options</h2>
           <div className="space-y-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Default Payout (%)</label>
-              <Input type="number" value={binary.defaultPayout} onChange={(e) => setBinary({ ...binary, defaultPayout: e.target.value })} className="bg-secondary/30" />
+            <div className="pt-2">
+              <label className="text-xs font-medium text-muted-foreground block mb-2">Binary payout band</label>
+              <div className="flex flex-wrap gap-2">
+                {BINARY_PAYOUT_RATES.map((rate) => {
+                  const pct = multiplyDecimalByInteger(rate, 100);
+                  return (
+                    <button
+                      key={rate}
+                      onClick={() => setBinary({ ...binary, payoutRate: rate })}
+                      className={cn(
+                        "rounded border px-3 py-1.5 text-xs font-medium transition-colors",
+                        binary.payoutRate === rate
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-secondary text-muted-foreground"
+                      )}
+                    >
+                      {pct}%
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                v20 Step 11 confirms this band and nothing else. A market&apos;s rate is the
+                admin&apos;s choice from it — the client never supplied a per-market mapping, so the
+                user screen previews the whole band instead of one number.
+              </p>
             </div>
             <div className="pt-2">
-              <label className="text-xs font-medium text-muted-foreground block mb-2">Allowed Expiration Times</label>
+              <label className="text-xs font-medium text-muted-foreground block mb-2">
+                Allowed expiry durations
+              </label>
               <div className="flex flex-wrap gap-2">
-                {[
-                  { key: "time30s", label: "30s" },
-                  { key: "time1m", label: "1m" },
-                  { key: "time3m", label: "3m" },
-                  { key: "time5m", label: "5m" },
-                  { key: "time15m", label: "15m" }
-                ].map((time) => (
-                  <button
-                    key={time.key}
-                    onClick={() => setBinary({ ...binary, [time.key]: !binary[time.key as keyof typeof binary] })}
-                    className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                      binary[time.key as keyof typeof binary] ? "bg-primary text-primary-foreground border border-primary" : "bg-secondary text-muted-foreground border border-border"
-                    }`}
-                  >
-                    {time.label}
-                  </button>
-                ))}
+                {DEFAULT_BINARY_EXPIRIES.map((time) => {
+                  const on = binary.expiries.includes(time.seconds);
+                  return (
+                    <button
+                      key={time.seconds}
+                      onClick={() =>
+                        setBinary({
+                          ...binary,
+                          expiries: on
+                            ? binary.expiries.filter((s) => s !== time.seconds)
+                            : [...binary.expiries, time.seconds].sort((a, b) => a - b),
+                        })
+                      }
+                      className={cn(
+                        "rounded border px-3 py-1.5 text-xs font-medium transition-colors",
+                        on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-secondary text-muted-foreground"
+                      )}
+                    >
+                      {time.label}
+                    </button>
+                  );
+                })}
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                v20 Q13 names 15s, 30s, 1m, 5m, 30m and 1h, and says the admin may configure which
+                of them are offered.
+              </p>
             </div>
+            <p className="rounded-lg border border-border bg-secondary/20 p-3 text-xs leading-relaxed text-muted-foreground">
+              Stake range is fixed by the client at ${formatDecimalString(BINARY_MIN_STAKE, 0)}–$
+              {formatDecimalString(BINARY_MAX_STAKE, 0)} per trade (v20 Q13), so it is not an
+              operator setting here.
+            </p>
           </div>
         </Card>
 

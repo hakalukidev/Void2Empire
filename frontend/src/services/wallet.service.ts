@@ -16,6 +16,11 @@ import type { TransactionStatus, TransactionType } from "@/types";
  */
 export interface WalletBalances {
   currency: string;
+  /**
+   * The Funding Balance is denominated in VUSDT and nothing else (v20 Q22), so it
+   * carries its own asset instead of inheriting `currency`.
+   */
+  fundingAsset: string;
   available: string;
   funding: string;
   profit: string;
@@ -36,6 +41,7 @@ export interface WalletTransaction {
 
 const EMPTY_BALANCES: WalletBalances = {
   currency: "USDT",
+  fundingAsset: "VUSDT",
   available: "0.00",
   funding: "0.00",
   profit: "0.00",

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { LocaleProvider } from "@/components/providers/locale-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
 
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Void2Empire",
-  description: "Real-money futures and binary options trading platform.",
+  description: "Real-money spot, futures and binary options trading platform.",
 };
 
 export default function RootLayout({ children, auth }: LayoutProps<"/">) {
@@ -29,10 +30,12 @@ export default function RootLayout({ children, auth }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <AuthProvider>
-            {children}
-            {auth}
-          </AuthProvider>
+          <LocaleProvider>
+            <AuthProvider>
+              {children}
+              {auth}
+            </AuthProvider>
+          </LocaleProvider>
           <Toaster position="top-right" />
         </ThemeProvider>
       </body>

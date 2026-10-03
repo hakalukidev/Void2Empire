@@ -53,6 +53,12 @@ export interface SpotOrder {
   type: OrderType;
   quantity: string;
   price: string | null; // null for market orders
+  /**
+   * Optional trigger levels (v20 Step 5 Q3). The server watches these and closes
+   * the position; nothing here simulates that.
+   */
+  stopLoss: string | null;
+  takeProfit: string | null;
   filled: string;
   status: SpotOrderStatus;
   createdAt: string;
@@ -64,16 +70,18 @@ export interface PlaceSpotOrderInput {
   type: OrderType;
   quantity: string;
   price?: string; // required for limit orders
+  stopLoss?: string;
+  takeProfit?: string;
   clientOrderId: string;
 }
 
 // ─── STUB DATA ────────────────────────────────────────────────────────────────
 // Illustrative layout data, not quotes. The tickers and the chart series both come
 // from `config/sample-market-data`, so a page can never show a header price that
-// disagrees with its own chart. Pairs with no sample row would have no figure at
-// all, so three crypto rows are kept here as layout samples. The order book and
-// trade prints below are BTC-shaped sample depth served for every pair until the
-// market catalog is consolidated.
+// disagrees with its own chart, and a pair with no sample row returns null instead
+// of a figure invented here. Every market the catalog gives a spot rail to has a
+// sample row. The order book and trade prints below are BTC-shaped sample depth
+// served for every pair until a real market-data source exists (DR-002/DR-023).
 
 const MOCK_TICKERS: Record<string, SpotTicker> = {};
 
@@ -85,14 +93,6 @@ for (const market of sampleMarkets) {
     changePct: `${up ? "+" : ""}${market.changePercent24h.toFixed(2)}%`,
     up,
   };
-}
-
-for (const ticker of [
-  { pair: "SOL/USDT", price: "168.42", changePct: "+5.31%", up: true },
-  { pair: "BNB/USDT", price: "612.08", changePct: "+3.47%", up: true },
-  { pair: "XRP/USDT", price: "0.5231", changePct: "+2.18%", up: true },
-]) {
-  MOCK_TICKERS[ticker.pair.replace("/", "")] = ticker;
 }
 
 const MOCK_ORDERBOOK: Orderbook = {
@@ -156,6 +156,8 @@ export async function placeSpotOrder(input: PlaceSpotOrderInput): Promise<SpotOr
     type: input.type,
     quantity: input.quantity,
     price: input.type === "limit" ? input.price ?? null : null,
+    stopLoss: input.stopLoss || null,
+    takeProfit: input.takeProfit || null,
     filled: input.type === "market" ? input.quantity : "0",
     status: input.type === "market" ? "filled" : "open",
     createdAt: new Date().toISOString(),

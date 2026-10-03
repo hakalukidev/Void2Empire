@@ -10,7 +10,9 @@ export default function TermsOfServicePage() {
           <FileText className="w-8 h-8" />
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">Terms of Service</h1>
         </div>
-        <p className="text-muted-foreground">Last Updated: September 2024</p>
+        {/* Legal text is supplied by the client [REQ-091]; until it is delivered this page must not
+            read as approved T&C. No effective date is claimed either — none is documented. */}
+        <p className="text-muted-foreground">Draft placeholder — final terms text and version to be supplied before launch.</p>
       </div>
 
       <div className="prose prose-invert prose-p:text-muted-foreground prose-headings:text-foreground max-w-none space-y-6">
@@ -69,7 +71,7 @@ export default function TermsOfServicePage() {
 
         <section className="space-y-3">
           <h2 className="text-2xl font-bold">7. Contact Information</h2>
-          <p>For any questions regarding these Terms of Service, please contact us at <span className="font-medium text-foreground">legal@void2empire.com</span>.</p>
+          <p>For any questions regarding these Terms of Service, please raise a support ticket from the Support page. A contact address for legal enquiries has not been published yet.</p>
         </section>
 
       </div>

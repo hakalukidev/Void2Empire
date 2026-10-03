@@ -5,15 +5,17 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { useNavStore } from "@/store/nav-store";
+import { useLocaleStore } from "@/store/locale-store";
 
 export function MobileNavButton() {
   const toggle = useNavStore((state) => state.toggle);
+  const { t } = useLocaleStore();
 
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label="Open menu"
+      aria-label={t("common.open_menu")}
       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:hidden"
     >
       <Menu className="h-5 w-5" />
@@ -26,6 +28,7 @@ export function MobileDrawer({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const open = useNavStore((state) => state.open);
   const setOpen = useNavStore((state) => state.setOpen);
+  const { t } = useLocaleStore();
 
   useEffect(() => {
     setOpen(false);
@@ -60,7 +63,7 @@ export function MobileDrawer({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="Close menu"
+            aria-label={t("common.close_menu")}
             className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
           >
             <X className="h-5 w-5" />

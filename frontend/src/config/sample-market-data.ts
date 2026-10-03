@@ -1,23 +1,29 @@
 import {
-  Banknote,
   Bitcoin,
   Diamond,
-  Gem,
-  Landmark,
-  TrendingUp,
+  Orbit,
+  Rocket,
+  Sprout,
+  Waves,
   type LucideIcon,
 } from "lucide-react";
 
 // No market-data feed exists yet — the contract is still open as DR-023, and
-// `config/markets.ts` deliberately carries `price: 0` for every asset. So the
+// `config/markets.ts` deliberately carries no price for any asset. So the
 // figures below are invented for layout purposes. Anything rendering them has
 // to show the `home.illustrative` badge, and none of it may flow into a
 // calculation the server trusts: these are display-only numbers, not money
 // values.
+//
+// One row per market that actually has rails, and only for the markets the home
+// panels can link to: the rows below all carry `spot` in `config/markets.ts`,
+// because MarketRow and QuickTrade link straight into /trade/spot/<symbol>.
+// The five "Binance Trading" coins and the Funding asset have no rails yet, so
+// they get no sample row rather than a card that leads to a dead page.
 export const SAMPLE_MARKET_SYMBOL = "BTCUSDT";
 
 export interface SampleMarket {
-  /** Matches the symbol in `config/markets.ts` so the rails stay in step with the real catalog. */
+  /** Must equal a `ListedMarket.symbol` in `config/markets.ts`. */
   symbol: string;
   pair: string;
   name: string;
@@ -31,6 +37,56 @@ export interface SampleMarket {
 }
 
 export const sampleMarkets: SampleMarket[] = [
+  {
+    // The platform's own coins (v20 Step 7). Spot + Futures only — the client
+    // kept them out of Binary, so no Binary card may point at these symbols.
+    symbol: "V2EUSDT",
+    pair: "V2E/USDT",
+    name: "Void2Empire",
+    icon: Rocket,
+    price: 4.82,
+    changePercent24h: 6.42,
+    high24h: 5.04,
+    low24h: 4.41,
+    volume24h: 18_600_000,
+    precision: 2,
+  },
+  {
+    symbol: "INFUSDT",
+    pair: "INF/USDT",
+    name: "Infinity",
+    icon: Orbit,
+    price: 0.6142,
+    changePercent24h: -2.18,
+    high24h: 0.6401,
+    low24h: 0.5988,
+    volume24h: 7_240_000,
+    precision: 4,
+  },
+  {
+    symbol: "RIVERUSDT",
+    pair: "RIVER/USDT",
+    name: "River",
+    icon: Waves,
+    price: 18.94,
+    changePercent24h: 1.24,
+    high24h: 19.62,
+    low24h: 18.35,
+    volume24h: 11_050_000,
+    precision: 2,
+  },
+  {
+    symbol: "ONIONUSDT",
+    pair: "ONION/USDT",
+    name: "Onion",
+    icon: Sprout,
+    price: 2.3175,
+    changePercent24h: -0.86,
+    high24h: 2.3844,
+    low24h: 2.2791,
+    volume24h: 4_380_000,
+    precision: 4,
+  },
   {
     symbol: "BTCUSDT",
     pair: "BTC/USDT",
@@ -53,54 +109,6 @@ export const sampleMarkets: SampleMarket[] = [
     high24h: 3188.4,
     low24h: 3096.75,
     volume24h: 612_400_000,
-    precision: 2,
-  },
-  {
-    symbol: "EURUSD",
-    pair: "EUR/USD",
-    name: "Euro / US Dollar",
-    icon: Banknote,
-    price: 1.0824,
-    changePercent24h: -0.18,
-    high24h: 1.0869,
-    low24h: 1.0792,
-    volume24h: 94_800_000,
-    precision: 4,
-  },
-  {
-    symbol: "GBPUSD",
-    pair: "GBP/USD",
-    name: "British Pound / US Dollar",
-    icon: Landmark,
-    price: 1.2691,
-    changePercent24h: 0.12,
-    high24h: 1.2738,
-    low24h: 1.2654,
-    volume24h: 71_200_000,
-    precision: 4,
-  },
-  {
-    symbol: "XAUUSD",
-    pair: "XAU/USD",
-    name: "Gold",
-    icon: Gem,
-    price: 2662.48,
-    changePercent24h: 0.32,
-    high24h: 2684.1,
-    low24h: 2641.9,
-    volume24h: 128_600_000,
-    precision: 2,
-  },
-  {
-    symbol: "AAPL",
-    pair: "AAPL",
-    name: "Apple Inc.",
-    icon: TrendingUp,
-    price: 228.4,
-    changePercent24h: -0.27,
-    high24h: 230.15,
-    low24h: 226.8,
-    volume24h: 42_300_000,
     precision: 2,
   },
 ];

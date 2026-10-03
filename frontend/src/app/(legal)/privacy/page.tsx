@@ -10,7 +10,9 @@ export default function PrivacyPolicyPage() {
           <Shield className="w-8 h-8" />
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">Privacy Policy</h1>
         </div>
-        <p className="text-muted-foreground">Last Updated: September 2024</p>
+        {/* Legal text is supplied by the client [REQ-091]; until it is delivered this page must not
+            read as approved policy. No effective date is claimed either — none is documented. */}
+        <p className="text-muted-foreground">Draft placeholder — final privacy text and version to be supplied before launch.</p>
       </div>
 
       <div className="prose prose-invert prose-p:text-muted-foreground prose-headings:text-foreground prose-a:text-primary max-w-none space-y-6">
@@ -63,8 +65,7 @@ export default function PrivacyPolicyPage() {
 
         <section className="space-y-3">
           <h2 className="text-2xl font-bold">6. Contact Us</h2>
-          <p>If you have questions or comments about this Privacy Policy, please contact us at:</p>
-          <p className="font-medium text-foreground">privacy@void2empire.com</p>
+          <p>If you have questions or comments about this Privacy Policy, please raise a support ticket from the Support page. A contact address for privacy enquiries has not been published yet.</p>
         </section>
 
       </div>

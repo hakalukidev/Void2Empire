@@ -1,13 +1,14 @@
 "use client";
 
 import { OrderStatus } from "@/services/p2p.service";
+import { useLocaleStore } from "@/store/locale-store";
 import { Check } from "lucide-react";
 
-const STEPS: { label: string; status: OrderStatus }[] = [
-  { label: "Order Placed", status: "pending" },
-  { label: "Payment Sent", status: "paid" },
-  { label: "USDT Released", status: "released" },
-  { label: "Completed", status: "completed" },
+const STEPS: { labelKey: string; status: OrderStatus }[] = [
+  { labelKey: "p2p.step_placed", status: "pending" },
+  { labelKey: "p2p.step_payment_sent", status: "paid" },
+  { labelKey: "p2p.step_released", status: "released" },
+  { labelKey: "p2p.step_completed", status: "completed" },
 ];
 
 const STATUS_STEP_INDEX: Record<OrderStatus, number> = {
@@ -19,13 +20,14 @@ interface OrderStatusStepperProps {
 }
 
 export function OrderStatusStepper({ status }: OrderStatusStepperProps) {
+  const { t } = useLocaleStore();
   const currentStep = STATUS_STEP_INDEX[status];
 
   if (status === "cancelled") {
     return (
       <div className="flex items-center gap-2 text-danger font-medium">
         <span className="w-5 h-5 rounded-full bg-danger/20 border border-danger flex items-center justify-center text-xs">✕</span>
-        Order Cancelled
+        {t("p2p.order_cancelled")}
       </div>
     );
   }
@@ -34,7 +36,7 @@ export function OrderStatusStepper({ status }: OrderStatusStepperProps) {
     return (
       <div className="flex items-center gap-2 text-warning font-medium">
         <span className="w-5 h-5 rounded-full bg-warning/20 border border-warning flex items-center justify-center text-xs">!</span>
-        Dispute Raised — Awaiting Admin Review
+        {t("p2p.dispute_raised")}
       </div>
     );
   }
@@ -56,7 +58,7 @@ export function OrderStatusStepper({ status }: OrderStatusStepperProps) {
               </div>
               <span className={`text-[11px] font-medium whitespace-nowrap ${
                 isDone ? "text-success" : isActive ? "text-primary" : "text-muted-foreground"
-              }`}>{step.label}</span>
+              }`}>{t(step.labelKey)}</span>
             </div>
             {i < STEPS.length - 1 && (
               <div className={`h-0.5 w-12 md:w-20 mb-5 mx-1 transition-all ${isDone ? "bg-success" : "bg-border"}`} />

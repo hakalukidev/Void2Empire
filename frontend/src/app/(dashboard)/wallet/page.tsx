@@ -34,12 +34,15 @@ export default function WalletPage() {
   const available = balances?.available ?? "0.00";
   const funding = balances?.funding ?? "0.00";
   const profit = balances?.profit ?? "0.00";
+  const currency = balances?.currency ?? "USDT";
+  const fundingAsset = balances?.fundingAsset ?? "VUSDT";
   const total = addDecimalStrings(available, funding, profit);
 
   const cards = [
     {
       label: t("wallet.available_balance"),
       value: available,
+      asset: currency,
       note: t("wallet.available_spendable"),
       icon: <WalletIcon className="h-5 w-5 text-primary" />,
       accent: "border-primary/30",
@@ -47,6 +50,7 @@ export default function WalletPage() {
     {
       label: t("wallet.funding_balance"),
       value: funding,
+      asset: fundingAsset,
       note: t("wallet.funding_restricted"),
       icon: <Lock className="h-5 w-5 text-warning" />,
       accent: "border-warning/40 bg-warning/5",
@@ -54,6 +58,7 @@ export default function WalletPage() {
     {
       label: t("wallet.profit_balance"),
       value: profit,
+      asset: currency,
       note: t("wallet.profit_withdrawable"),
       icon: <TrendingUp className="h-5 w-5 text-success" />,
       accent: "border-success/30",
@@ -84,7 +89,7 @@ export default function WalletPage() {
           {t("wallet.total_balance")}
         </p>
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">
-          ${total} <span className="text-lg text-muted-foreground">{balances?.currency ?? "USDT"}</span>
+          ${total} <span className="text-lg text-muted-foreground">{currency}</span>
         </h2>
       </Card>
 
@@ -96,7 +101,9 @@ export default function WalletPage() {
               {c.icon}
               <p className="text-sm font-semibold text-foreground">{c.label}</p>
             </div>
-            <p className="mb-2 text-2xl font-bold tracking-tight">${c.value}</p>
+            <p className="mb-2 text-2xl font-bold tracking-tight">
+              ${c.value} <span className="text-sm font-medium text-muted-foreground">{c.asset}</span>
+            </p>
             <p className="text-xs leading-relaxed text-muted-foreground">{c.note}</p>
           </Card>
         ))}

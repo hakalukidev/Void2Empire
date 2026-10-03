@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { verifySchema, type VerifyInput } from "@/lib/validators/auth";
 import { verifyEmail, resendVerificationCode } from "@/lib/api/auth";
 import { useAuthStore } from "@/store/auth-store";
+import { useLocaleStore } from "@/store/locale-store";
 import { AuthHeader, Field, SubmitButton, authInputClass } from "@/components/auth/fields";
 import { cn } from "@/lib/utils/cn";
 
@@ -18,6 +19,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function VerifyPage() {
   const router = useRouter();
+  const { t, locale } = useLocaleStore();
   const setUser = useAuthStore((state) => state.setUser);
   // A code was just sent by registration, so resend starts on cooldown.
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
@@ -47,11 +49,11 @@ export default function VerifyPage() {
     try {
       const user = await verifyEmail(data);
       setUser(user);
-      toast.success("Email verified");
+      toast.success(t("auth.verify_success"));
       router.push("/dashboard");
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
-      toast.error(message ?? "Invalid or expired code");
+      toast.error(message ?? t("auth.verify_invalid"));
     }
   };
 
@@ -60,9 +62,9 @@ export default function VerifyPage() {
     try {
       await resendVerificationCode(email);
       setCooldown(RESEND_COOLDOWN_SECONDS);
-      toast.success("Code resent");
+      toast.success(t("auth.resend_success"));
     } catch {
-      toast.error("Could not resend code");
+      toast.error(t("auth.resend_failed"));
     }
   };
 
@@ -72,23 +74,26 @@ export default function VerifyPage() {
         <MailOpen className="h-5 w-5" />
       </span>
       <AuthHeader
-        title="Verify your email"
+        title={t("auth.verify_title")}
         subtitle={
           <>
-            Enter the 6-digit code we sent to{" "}
-            <span className="font-medium text-foreground">{email || "your email"}</span>.
+            {t("auth.verify_subtitle_before")}{" "}
+            <span className="font-medium text-foreground">
+              {email || t("auth.verify_email_fallback")}
+            </span>
+            {locale === "bn" ? "।" : "."}
           </>
         }
       />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <input type="hidden" {...register("email")} />
-        <Field label="Verification code" htmlFor="verify-code" error={errors.code?.message}>
+        <Field label={t("auth.verify_code")} htmlFor="verify-code" error={errors.code?.message}>
           <input
             id="verify-code"
             inputMode="numeric"
             autoComplete="one-time-code"
             maxLength={6}
-            placeholder="000000"
+            placeholder={t("auth.verify_code_ph")}
             aria-invalid={!!errors.code || undefined}
             className={cn(
               authInputClass,
@@ -100,7 +105,7 @@ export default function VerifyPage() {
         </Field>
         <div className="pt-2">
           <SubmitButton pending={isSubmitting}>
-            {isSubmitting ? "Verifying…" : "Verify email"}
+            {isSubmitting ? t("auth.verify_pending") : t("auth.verify_btn")}
           </SubmitButton>
         </div>
       </form>
@@ -112,10 +117,12 @@ export default function VerifyPage() {
           disabled={cooldown > 0}
           className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:font-normal disabled:text-muted-foreground disabled:no-underline"
         >
-          {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+          {cooldown > 0
+            ? `${t("auth.resend_in_before")}${cooldown}${t("auth.resend_in_after")}`
+            : t("auth.resend")}
         </button>
         <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
-          Skip for now
+          {t("auth.skip_for_now")}
         </Link>
       </div>
     </div>

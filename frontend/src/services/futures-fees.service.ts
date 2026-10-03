@@ -18,12 +18,25 @@
 
 import {
   addDecimalStrings,
+  divideDecimalStrings,
   multiplyDecimalByInteger,
   multiplyDecimalStrings,
 } from "@/lib/utils/decimal";
+import { marketsFor } from "@/config/markets";
+import { parsePair } from "@/lib/utils/pair";
 
 /** 0.1% of notional, per side of the trade (v14 Q10/Q21). */
 export const TRADING_FEE_RATE = "0.001";
+
+/**
+ * The same rate as a percent figure for copy and screens, derived rather than
+ * typed again, so a rate change can never leave the wording behind. Dividing by
+ * "1" trims the trailing zeros a plain x100 leaves.
+ */
+export const TRADING_FEE_PERCENT = divideDecimalStrings(
+  multiplyDecimalByInteger(TRADING_FEE_RATE, 100),
+  "1",
+);
 
 /** 2% of margin, applied when the company settles funding (v14 Q10). */
 export const FUNDING_RATE = "0.02";
@@ -114,41 +127,54 @@ export function calculateFundingAmount(margin: string, fundingRate: string): str
 // ─── MOCK DATA ────────────────────────────────────────────────────────────────
 // No futures backend exists yet, so these rows are layout samples. They must
 // never be treated as quotes or as a charged amount.
+//
+// One config per market the catalog gives a futures rail to — the previous list
+// carried SOL/BNB/XRP, coins the client never said the platform launches, so the
+// admin screen offered to configure funding for markets that do not exist.
+// Interval and direction are cycled here purely so the sample table is not six
+// identical rows; the real values are the operator's setting (v14 Q10) and the
+// server's imbalance calculation.
+const SAMPLE_INTERVALS = [8, 4, 1];
 
-const MOCK_FUNDING_CONFIGS: FundingConfig[] = [
-  { marketId: "btc-usdt", pair: "BTC-USDT", fundingRate: FUNDING_RATE, fundingIntervalHours: 8, fundingDirection: "long_pays_short", nextSettlementAt: new Date(Date.now() + 6.7 * 3600 * 1000).toISOString() },
-  { marketId: "eth-usdt", pair: "ETH-USDT", fundingRate: FUNDING_RATE, fundingIntervalHours: 4, fundingDirection: "long_pays_short", nextSettlementAt: new Date(Date.now() + 2.2 * 3600 * 1000).toISOString() },
-  { marketId: "sol-usdt", pair: "SOL-USDT", fundingRate: FUNDING_RATE, fundingIntervalHours: 4, fundingDirection: "short_pays_long", nextSettlementAt: new Date(Date.now() + 2.2 * 3600 * 1000).toISOString() },
-  { marketId: "bnb-usdt", pair: "BNB-USDT", fundingRate: FUNDING_RATE, fundingIntervalHours: 8, fundingDirection: "long_pays_short", nextSettlementAt: new Date(Date.now() + 6.7 * 3600 * 1000).toISOString() },
-  { marketId: "xrp-usdt", pair: "XRP-USDT", fundingRate: FUNDING_RATE, fundingIntervalHours: 1, fundingDirection: "long_pays_short", nextSettlementAt: new Date(Date.now() + 0.5 * 3600 * 1000).toISOString() },
-];
+const MOCK_FUNDING_CONFIGS: FundingConfig[] = marketsFor("futures").map((market, index): FundingConfig => {
+  const intervalHours = SAMPLE_INTERVALS[index % SAMPLE_INTERVALS.length];
+  return {
+    marketId: market.symbol,
+    pair: market.pair,
+    fundingRate: FUNDING_RATE,
+    fundingIntervalHours: intervalHours,
+    fundingDirection: index % 3 === 1 ? "short_pays_long" : "long_pays_short",
+    nextSettlementAt: new Date(Date.now() + intervalHours * 3_600_000 * 0.7).toISOString(),
+  };
+});
 
 const MOCK_USER_FUNDING_HISTORY: FundingHistoryEntry[] = [
-  { id: "FND-001", positionId: "POS-101", pair: "BTC-USDT", side: "Long", margin: "1000", fundingRate: FUNDING_RATE, fundingAmount: "-20.00", settledAt: "2024-09-23 08:00" },
-  { id: "FND-002", positionId: "POS-101", pair: "BTC-USDT", side: "Long", margin: "1000", fundingRate: FUNDING_RATE, fundingAmount: "-20.00", settledAt: "2024-09-23 00:00" },
-  { id: "FND-003", positionId: "POS-099", pair: "ETH-USDT", side: "Short", margin: "500", fundingRate: FUNDING_RATE, fundingAmount: "10.00", settledAt: "2024-09-22 20:00" },
-  { id: "FND-004", positionId: "POS-095", pair: "SOL-USDT", side: "Long", margin: "200", fundingRate: FUNDING_RATE, fundingAmount: "4.00", settledAt: "2024-09-22 16:00" },
+  { id: "FND-001", positionId: "POS-101", pair: "BTC/USDT", side: "Long", margin: "1000", fundingRate: FUNDING_RATE, fundingAmount: "-20.00", settledAt: "2024-09-23 08:00" },
+  { id: "FND-002", positionId: "POS-101", pair: "BTC/USDT", side: "Long", margin: "1000", fundingRate: FUNDING_RATE, fundingAmount: "-20.00", settledAt: "2024-09-23 00:00" },
+  { id: "FND-003", positionId: "POS-099", pair: "ETH/USDT", side: "Short", margin: "500", fundingRate: FUNDING_RATE, fundingAmount: "10.00", settledAt: "2024-09-22 20:00" },
+  { id: "FND-004", positionId: "POS-095", pair: "V2E/USDT", side: "Long", margin: "200", fundingRate: FUNDING_RATE, fundingAmount: "4.00", settledAt: "2024-09-22 16:00" },
 ];
 
 const MOCK_ADMIN_HISTORY: AdminFundingSettlement[] = [
-  { id: "SET-001", pair: "BTC-USDT", direction: "long_pays_short", totalLongPaid: "45.20", totalShortPaid: "0", settledAt: "2024-09-23 08:00" },
-  { id: "SET-002", pair: "ETH-USDT", direction: "long_pays_short", totalLongPaid: "18.50", totalShortPaid: "0", settledAt: "2024-09-23 08:00" },
-  { id: "SET-003", pair: "SOL-USDT", direction: "short_pays_long", totalLongPaid: "0", totalShortPaid: "9.60", settledAt: "2024-09-23 08:00" },
-  { id: "SET-004", pair: "BTC-USDT", direction: "long_pays_short", totalLongPaid: "43.10", totalShortPaid: "0", settledAt: "2024-09-23 00:00" },
+  { id: "SET-001", pair: "BTC/USDT", direction: "long_pays_short", totalLongPaid: "45.20", totalShortPaid: "0", settledAt: "2024-09-23 08:00" },
+  { id: "SET-002", pair: "ETH/USDT", direction: "long_pays_short", totalLongPaid: "18.50", totalShortPaid: "0", settledAt: "2024-09-23 08:00" },
+  { id: "SET-003", pair: "V2E/USDT", direction: "short_pays_long", totalLongPaid: "0", totalShortPaid: "9.60", settledAt: "2024-09-23 08:00" },
+  { id: "SET-004", pair: "BTC/USDT", direction: "long_pays_short", totalLongPaid: "43.10", totalShortPaid: "0", settledAt: "2024-09-23 00:00" },
 ];
 
 const MOCK_STATS: FundingStats = {
   totalFundingCollected: "12450",
   settlementsToday: 24,
-  activeMarketsWithFunding: 5,
+  activeMarketsWithFunding: MOCK_FUNDING_CONFIGS.length,
 };
 
 // ─── SERVICE FUNCTIONS ────────────────────────────────────────────────────────
 
+/** Accepts any of the pair spellings the app routes with — `BTCUSDT`, `BTC-USDT`, `BTC/USDT`. */
 export async function getFundingConfig(pair: string): Promise<FundingConfig | null> {
-  // TODO(backend): GET /futures/funding-config/{pair}
-  const key = pair.toLowerCase().replace("/", "-");
-  return MOCK_FUNDING_CONFIGS.find((c) => c.marketId === key) ?? null;
+  // TODO(backend): GET /futures/funding-config/{market_id}
+  const { symbol } = parsePair(pair);
+  return MOCK_FUNDING_CONFIGS.find((c) => c.marketId === symbol) ?? null;
 }
 
 export async function getMyFundingHistory(): Promise<FundingHistoryEntry[]> {

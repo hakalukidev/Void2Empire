@@ -43,8 +43,10 @@ function Field({
 
 export function PositionCalculator() {
   const { t } = useLocaleStore();
-  const instrument = "XAU/USD";
-  const currency = "USD";
+  // Every market the platform lists quotes in USDT, and the calculator's prices
+  // are typed in by hand, so it is market-agnostic. The "XAU/USD · USD" label
+  // this used to carry named a market the client never listed.
+  const currency = "USDT";
   const [openingPrice, setOpeningPrice] = useState("");
   const [stopLossPrice, setStopLossPrice] = useState("");
   const [accountBalance, setAccountBalance] = useState("");
@@ -74,9 +76,7 @@ export function PositionCalculator() {
   return (
     <Card className="flex h-full flex-col bg-card border-border p-6">
       <h2 className="text-lg font-semibold">{t("markets.calc_title")}</h2>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {instrument} · {currency}
-      </p>
+      <p className="mt-1 text-xs text-muted-foreground">{t("markets.calc_note_usdt")}</p>
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <Field label={t("markets.calc_opening")} value={openingPrice} onChange={setOpeningPrice} />

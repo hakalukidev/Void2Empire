@@ -12,15 +12,31 @@
 import { multiplyDecimalByInteger, divideDecimalByInteger } from "@/lib/utils/decimal";
 
 export interface FundingPreset {
-  paid: string; // USDT the user pays
+  paid: string; // wallet currency the user pays
   funding: string; // restricted Funding Balance granted (paid × ratio)
 }
 
+/**
+ * Fixed trading leverage inside the Funding System (v20 Q24): 20×, and the user
+ * cannot change it. This is NOT the purchase `ratio` below — 10× is how much
+ * Funding Balance a paid amount buys (REQ-098/099); 20× is how the resulting
+ * balance is leveraged once futures trades are opened with it. Every other rule
+ * for funding-based trades (margin, fee, liquidation) is still undecided (DR-053).
+ */
+export const FUNDING_TRADING_LEVERAGE = 20;
+
 export interface FundingRatioConfig {
+  /** Asset the paid amount is debited in. The wallet base currency is still open (v20 Q14). */
   currency: string;
+  /**
+   * Asset the Funding Balance itself is denominated in. v20 (Step 9) confirms the
+   * Funding System uses VUSDT and nothing else, so this is never the same field as
+   * `currency` — the paid side and the granted side can differ.
+   */
+  fundingAsset: string;
   ratio: number; // basic ratio is 10× (REQ-098) — a multiplier, not money
   presets: FundingPreset[]; // 50→500, 100→1000, 150→1500 (REQ-098/109)
-  minAmount: string; // admin-configured bounds (funding_ratios)
+  minAmount: string; // admin-configured bounds (funding_ratios); no client-stated limits
   maxAmount: string;
 }
 
@@ -52,6 +68,7 @@ export interface FundingPurchase {
 
 const DEFAULT_RATIO_CONFIG: FundingRatioConfig = {
   currency: "USDT",
+  fundingAsset: "VUSDT",
   ratio: 10,
   presets: [
     { paid: "50", funding: "500" },

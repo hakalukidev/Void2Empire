@@ -9,9 +9,11 @@ import { ArrowLeft, Mail, MailCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "@/lib/validators/auth";
 import { requestPasswordReset } from "@/lib/api/auth";
+import { useLocaleStore } from "@/store/locale-store";
 import { AuthHeader, Field, IconInput, SubmitButton } from "@/components/auth/fields";
 
 export default function ForgotPasswordPage() {
+  const { t } = useLocaleStore();
   const [sent, setSent] = useState(false);
   const {
     register,
@@ -25,7 +27,7 @@ export default function ForgotPasswordPage() {
     } catch (error) {
       // Enumeration-safe: never reveal whether the account exists.
       if (!isAxiosError(error)) {
-        toast.error("Could not send reset email");
+        toast.error(t("auth.forgot_failed"));
       }
     } finally {
       setSent(true);
@@ -39,15 +41,15 @@ export default function ForgotPasswordPage() {
           <MailCheck className="h-5 w-5" />
         </span>
         <AuthHeader
-          title="Check your inbox"
-          subtitle="If an account exists for that email, we've sent a link to reset your password."
+          title={t("auth.forgot_sent_title")}
+          subtitle={t("auth.forgot_sent_subtitle")}
         />
         <Link
           href="/login"
           className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-medium transition-colors hover:bg-accent"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to login
+          {t("auth.back_to_login")}
         </Link>
       </div>
     );
@@ -55,32 +57,29 @@ export default function ForgotPasswordPage() {
 
   return (
     <div>
-      <AuthHeader
-        title="Forgot your password?"
-        subtitle="Enter your email and we'll send you a link to reset it."
-      />
+      <AuthHeader title={t("auth.forgot_title")} subtitle={t("auth.forgot_subtitle")} />
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <Field label="Email" htmlFor="forgot-email" error={errors.email?.message}>
+        <Field label={t("auth.email")} htmlFor="forgot-email" error={errors.email?.message}>
           <IconInput
             id="forgot-email"
             type="email"
             icon={Mail}
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder={t("auth.email_ph")}
             invalid={!!errors.email}
             {...register("email")}
           />
         </Field>
         <div className="pt-2">
           <SubmitButton pending={isSubmitting}>
-            {isSubmitting ? "Sending…" : "Send reset link"}
+            {isSubmitting ? t("auth.forgot_pending") : t("auth.forgot_btn")}
           </SubmitButton>
         </div>
       </form>
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Remembered it?{" "}
+        {t("auth.remembered")}{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Log in
+          {t("auth.login_btn")}
         </Link>
       </p>
     </div>

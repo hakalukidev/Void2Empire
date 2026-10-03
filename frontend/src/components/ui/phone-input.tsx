@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { countries, type Country } from "@/config/countries";
 import { CountryFlag } from "@/components/ui/country-flag";
+import { useLocaleStore } from "@/store/locale-store";
 import { cn } from "@/lib/utils/cn";
 
 interface PhoneInputProps {
@@ -43,6 +44,7 @@ export function PhoneInput({
   hasError,
   id,
 }: PhoneInputProps) {
+  const { t } = useLocaleStore();
   const [country, setCountry] = useState<Country>(() => findCountry(defaultCountryIso2));
   const [nationalNumber, setNationalNumber] = useState(() =>
     value.startsWith(`+${findCountry(defaultCountryIso2).dialCode}`)
@@ -127,7 +129,7 @@ export function PhoneInput({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Country code: ${country.name} +${country.dialCode}`}
+        aria-label={`${t("common.country_code")} ${country.name} +${country.dialCode}`}
         className="flex h-11 shrink-0 items-center gap-1.5 rounded-l-lg border-r border-input pl-3.5 pr-2.5 text-sm transition-colors hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none"
       >
         <CountryFlag iso2={country.iso2} />
@@ -157,13 +159,13 @@ export function PhoneInput({
               ref={searchRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search country or code"
+              placeholder={t("common.search_country")}
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
             />
           </div>
           <ul role="listbox" className="max-h-60 overflow-y-auto py-1">
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm text-muted-foreground">No matches</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">{t("common.no_matches")}</li>
             )}
             {filtered.map((c) => (
               <li key={c.iso2}>

@@ -9,6 +9,7 @@ import {
   saveAdminFundingConfig,
   fetchAdminMilestones,
   saveAdminMilestones,
+  FUNDING_TRADING_LEVERAGE,
   type FundingRatioConfig,
   type FundingPreset,
   type FundingMilestone,
@@ -51,17 +52,29 @@ export default function AdminFundingSystemPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Funding System (WA-1)</h1>
         <p className="mt-1 text-muted-foreground">
-          Manage the 10× funding ratio, purchase presets, bounds, and the profit-milestone reward
+          Manage the funding purchase ratio, presets, bounds, and the profit-milestone reward
           table. <span>Permission: funding.manage</span>
+        </p>
+        <p className="mt-2 flex gap-1.5 text-xs leading-relaxed text-muted-foreground">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          The Funding Balance is denominated in VUSDT and nothing else, and the Funding
+          System&apos;s {FUNDING_TRADING_LEVERAGE}× trading leverage is fixed. Neither is a
+          setting on this page — the ratio above is the purchase multiplier only.
         </p>
       </div>
 
       {/* Ratio & bounds */}
       <Card className="border-border bg-card p-5">
         <h2 className="mb-4 text-lg font-semibold">Ratio & Bounds</h2>
-        <div className="grid gap-4 sm:grid-cols-4">
-          <Field label="Currency">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <Field label="Paid currency">
             <Input value={config.currency} onChange={(e) => setConfig({ ...config, currency: e.target.value })} />
+          </Field>
+          <Field label="Funding asset">
+            {/* Read-only: the asset is a confirmed rule, not an admin setting. */}
+            <div className="flex h-10 items-center rounded-md border border-input bg-secondary/30 px-3 text-sm font-medium">
+              {config.fundingAsset}
+            </div>
           </Field>
           <Field label="Ratio (×)">
             <Input
@@ -89,8 +102,8 @@ export default function AdminFundingSystemPage() {
         </div>
         <div className="space-y-2">
           <div className="grid grid-cols-[1fr_1fr_auto] gap-3 text-xs font-medium text-muted-foreground">
-            <span>Paid (USDT)</span>
-            <span>Funding granted (USDT)</span>
+            <span>Paid ({config.currency})</span>
+            <span>Funding granted ({config.fundingAsset})</span>
             <span />
           </div>
           {config.presets.map((p, i) => (

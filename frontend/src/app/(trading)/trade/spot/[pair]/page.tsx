@@ -3,11 +3,14 @@
 import { use, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { DecimalField } from "@/components/ui/decimal-field";
 import { TradingChart } from "@/components/ui/trading-chart";
 import { SampleBadge } from "@/components/home/sample-badge";
+import { ProductUnavailable } from "@/components/trading/product-unavailable";
+import { supportsProduct } from "@/config/markets";
 import { useLocaleStore } from "@/store/locale-store";
 import { groupDecimalString, isPositiveDecimal, multiplyDecimalStrings } from "@/lib/utils/decimal";
+import { parsePair } from "@/lib/utils/pair";
 import {
   fetchSpotTicker,
   fetchMarketSeries,
@@ -32,7 +35,7 @@ interface PageProps {
 
 export default function SpotTradePage({ params }: PageProps) {
   const { pair } = use(params);
-  const marketId = pair.replace("-", "").toUpperCase();
+  const { symbol: marketId, display: displayPair, base, quote } = parsePair(pair);
   const { t } = useLocaleStore();
 
   const [ticker, setTicker] = useState<SpotTicker | null>(null);
@@ -45,6 +48,8 @@ export default function SpotTradePage({ params }: PageProps) {
   const [type, setType] = useState<OrderType>("market");
   const [quantity, setQuantity] = useState("");
   const [price, setPrice] = useState("");
+  const [stopLoss, setStopLoss] = useState("");
+  const [takeProfit, setTakeProfit] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -65,7 +70,11 @@ export default function SpotTradePage({ params }: PageProps) {
 
   const quantityValid = isPositiveDecimal(quantity);
   const priceValid = type === "market" || isPositiveDecimal(price);
-  const canSubmit = quantityValid && priceValid && !submitting;
+  // v20 Step 5 Q3: Stop Loss / Take Profit must be supported and are both optional,
+  // so an empty field is valid. The server decides when a trigger fires.
+  const optionalValid = (v: string) => v === "" || isPositiveDecimal(v);
+  const triggersValid = optionalValid(stopLoss) && optionalValid(takeProfit);
+  const canSubmit = quantityValid && priceValid && triggersValid && !submitting;
   const total = type === "limit" && quantityValid && priceValid ? multiplyDecimalStrings(price, quantity) : null;
 
   const onSubmit = async () => {
@@ -78,11 +87,15 @@ export default function SpotTradePage({ params }: PageProps) {
         type,
         quantity,
         price: type === "limit" ? price : undefined,
+        stopLoss,
+        takeProfit,
         clientOrderId: `web-${Date.now()}`,
       });
       toast.success(t("spot.order_placed"));
       setQuantity("");
       setPrice("");
+      setStopLoss("");
+      setTakeProfit("");
       setOrders(await fetchOpenOrders());
     } catch {
       toast.error(t("spot.invalid_quantity"));
@@ -97,8 +110,11 @@ export default function SpotTradePage({ params }: PageProps) {
     toast.success(t("spot.order_cancelled"));
   };
 
-  const base = marketId.replace("USDT", "");
-  const quote = marketId.endsWith("USDT") ? "USDT" : "";
+  // A market the catalog gives no spot rail to is not a spot market, whatever the
+  // URL says — v20 Step 9 lists VUSDT as a Funding asset only.
+  if (!supportsProduct(marketId, "spot")) {
+    return <ProductUnavailable product="spot" symbol={marketId} pair={displayPair} />;
+  }
 
   return (
     <div className="flex flex-col bg-background lg:h-[calc(100vh-3.5rem)]">
@@ -202,14 +218,41 @@ export default function SpotTradePage({ params }: PageProps) {
           </div>
 
           {type === "limit" && (
-            <Field label={`${t("spot.price")} (${quote})`}>
-              <Input type="number" step="any" value={price} onChange={(e) => setPrice(e.target.value)} className="bg-secondary/30" />
-            </Field>
+            <DecimalField
+              id="spot-price"
+              label={`${t("spot.price")} (${quote})`}
+              value={price}
+              onChange={setPrice}
+              invalidText={t("spot.limit_price_required")}
+            />
           )}
 
-          <Field label={`${t("spot.quantity")} (${base})`}>
-            <Input type="number" step="any" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="bg-secondary/30" />
-          </Field>
+          <DecimalField
+            id="spot-quantity"
+            label={`${t("spot.quantity")} (${base})`}
+            value={quantity}
+            onChange={setQuantity}
+            invalidText={t("spot.invalid_quantity")}
+          />
+
+          <div className="grid grid-cols-2 gap-2">
+            <DecimalField
+              id="spot-stop-loss"
+              label={`${t("common.stop_loss")} (${quote})`}
+              value={stopLoss}
+              onChange={setStopLoss}
+              invalidText={t("common.invalid_price")}
+              optional
+            />
+            <DecimalField
+              id="spot-take-profit"
+              label={`${t("common.take_profit")} (${quote})`}
+              value={takeProfit}
+              onChange={setTakeProfit}
+              invalidText={t("common.invalid_price")}
+              optional
+            />
+          </div>
 
           <div className="flex justify-between rounded-lg border border-border bg-secondary/20 p-3 text-xs">
             <span className="text-muted-foreground">{t("spot.total")}</span>
@@ -237,14 +280,15 @@ export default function SpotTradePage({ params }: PageProps) {
           <p className="py-4 text-center text-sm text-muted-foreground">{t("spot.no_open_orders")}</p>
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[480px] text-left text-sm">
+          <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="text-xs text-muted-foreground">
               <tr>
-                <th className="py-2 font-medium">Pair</th>
-                <th className="py-2 font-medium">Side</th>
-                <th className="py-2 font-medium">Type</th>
-                <th className="py-2 font-medium">Qty</th>
-                <th className="py-2 font-medium">Price</th>
+                <th className="py-2 font-medium">{t("col.pair")}</th>
+                <th className="py-2 font-medium">{t("col.side")}</th>
+                <th className="py-2 font-medium">{t("col.type")}</th>
+                <th className="py-2 font-medium">{t("col.qty")}</th>
+                <th className="py-2 font-medium">{t("spot.price")}</th>
+                <th className="py-2 font-medium">{t("common.triggers")}</th>
                 <th className="py-2 font-medium" />
               </tr>
             </thead>
@@ -252,10 +296,19 @@ export default function SpotTradePage({ params }: PageProps) {
               {orders.map((o) => (
                 <tr key={o.id}>
                   <td className="py-2 font-medium">{o.pair}</td>
-                  <td className={cn("py-2 capitalize", o.side === "buy" ? "text-success" : "text-danger")}>{o.side}</td>
-                  <td className="py-2 capitalize text-muted-foreground">{o.type}</td>
+                  <td className={cn("py-2", o.side === "buy" ? "text-success" : "text-danger")}>
+                    {t(`spot.${o.side}`)}
+                  </td>
+                  <td className="py-2 text-muted-foreground">{t(`trade.${o.type}`)}</td>
                   <td className="py-2 font-mono">{o.quantity}</td>
-                  <td className="py-2 font-mono">{o.price ?? "market"}</td>
+                  <td className="py-2 font-mono">{o.price ? groupDecimalString(o.price) : t("trade.market")}</td>
+                  <td className="py-2 font-mono text-xs text-muted-foreground">
+                    {o.stopLoss || o.takeProfit
+                      ? `SL ${o.stopLoss ? groupDecimalString(o.stopLoss) : "—"} / TP ${
+                          o.takeProfit ? groupDecimalString(o.takeProfit) : "—"
+                        }`
+                      : "—"}
+                  </td>
                   <td className="py-2 text-right">
                     <Button size="sm" variant="ghost" onClick={() => onCancel(o.id)}>
                       {t("spot.cancel")}
@@ -269,15 +322,6 @@ export default function SpotTradePage({ params }: PageProps) {
         )}
       </div>
     </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="block text-xs font-medium text-muted-foreground">{label}</span>
-      {children}
-    </label>
   );
 }
 

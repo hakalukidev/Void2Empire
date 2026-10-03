@@ -2,12 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { CountdownTimer } from "@/components/p2p/countdown-timer";
 import { OrderStatusStepper } from "@/components/p2p/order-status-stepper";
 import { AgentBadgeDisplay } from "@/components/p2p/agent-badge";
-import { getOrder, markAsPaid, releaseUsdt, raiseDispute, cancelOrder, P2POrder } from "@/services/p2p.service";
+import {
+  createOrder,
+  getPost,
+  getOrder,
+  markAsPaid,
+  releaseUsdt,
+  raiseDispute,
+  cancelOrder,
+  P2POrder,
+  P2PPost,
+} from "@/services/p2p.service";
+import { compareDecimalStrings, formatDecimalString, isPositiveDecimal, multiplyDecimalStrings } from "@/lib/utils/decimal";
+import { useLocaleStore } from "@/store/locale-store";
 import { AlertTriangle, CheckCircle, MessageSquare, Send, ShieldAlert, X } from "lucide-react";
 
 // MOCK: current logged-in user id
@@ -15,16 +29,20 @@ const CURRENT_USER_ID = "u1";
 
 interface ChatMessage {
   sender: "buyer" | "seller" | "system";
-  text: string;
+  /** System messages store a message key so they follow the locale; typed messages store raw text. */
+  text?: string;
+  textKey?: string;
   time: string;
 }
 
 export default function OrderRoomPage({ params }: { params: Promise<{ orderId: string }> }) {
+  const { t } = useLocaleStore();
   const { orderId } = use(params);
   const [order, setOrder] = useState<P2POrder | null>(null);
+  const [post, setPost] = useState<P2PPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { sender: "system", text: "Order created. Please complete payment within the time limit.", time: new Date().toLocaleTimeString() },
+    { sender: "system", textKey: "p2p.msg_order_created", time: new Date().toLocaleTimeString() },
   ]);
   const [chatInput, setChatInput] = useState("");
   const [showDisputeModal, setShowDisputeModal] = useState(false);
@@ -32,19 +50,33 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    getOrder(orderId).then(data => { setOrder(data); setLoading(false); });
+    // The marketplace routes a post's id through this page, so an id with no order behind it
+    // means "start buying from this post" (REQ-129).
+    getOrder(orderId).then(existing => {
+      if (existing) {
+        setOrder(existing);
+        setLoading(false);
+        return;
+      }
+      return getPost(orderId).then(foundPost => {
+        setPost(foundPost);
+        setLoading(false);
+      });
+    });
   }, [orderId]);
 
-  if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading order room...</div>;
-  if (!order) return <div className="p-8 text-center text-danger">Order not found.</div>;
+  if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">{t("p2p.room_loading")}</div>;
+  if (!order && post) return <BuyFromPost post={post} />;
+  if (!order) return <div className="p-8 text-center text-danger">{t("p2p.room_not_found")}</div>;
 
   const isBuyer = order.buyerId === CURRENT_USER_ID;
+  const payableDeadline = order.status === "pending" ? order.paymentExpiresAt : order.releaseExpiresAt;
 
   const handleMarkPaid = async () => {
     setSubmitting(true);
     const updated = await markAsPaid(order.id);
     setOrder(updated);
-    setChatMessages(prev => [...prev, { sender: "buyer", text: "Payment sent! Please verify and release USDT.", time: new Date().toLocaleTimeString() }]);
+    setChatMessages(prev => [...prev, { sender: "buyer", textKey: "p2p.msg_payment_sent", time: new Date().toLocaleTimeString() }]);
     setSubmitting(false);
   };
 
@@ -52,12 +84,12 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
     setSubmitting(true);
     const updated = await releaseUsdt(order.id);
     setOrder(updated);
-    setChatMessages(prev => [...prev, { sender: "system", text: "USDT has been released. Order completed!", time: new Date().toLocaleTimeString() }]);
+    setChatMessages(prev => [...prev, { sender: "system", textKey: "p2p.msg_usdt_released", time: new Date().toLocaleTimeString() }]);
     setSubmitting(false);
   };
 
   const handleCancel = async () => {
-    if (!confirm("Cancel this order?")) return;
+    if (!confirm(t("p2p.confirm_cancel"))) return;
     await cancelOrder(order.id);
     setOrder(prev => prev ? { ...prev, status: "cancelled" } : prev);
   };
@@ -68,7 +100,7 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
     await raiseDispute(order.id, disputeReason);
     setOrder(prev => prev ? { ...prev, status: "disputed", disputeReason } : prev);
     setShowDisputeModal(false);
-    setChatMessages(prev => [...prev, { sender: "system", text: "⚠️ Dispute raised. Admin has been notified.", time: new Date().toLocaleTimeString() }]);
+    setChatMessages(prev => [...prev, { sender: "system", textKey: "p2p.msg_dispute_raised", time: new Date().toLocaleTimeString() }]);
     setSubmitting(false);
   };
 
@@ -87,14 +119,16 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight">
-            Order Room <span className="font-mono text-muted-foreground text-sm">#{order.id}</span>
+            {t("p2p.order_room")} <span className="font-mono text-muted-foreground text-sm">#{order.id}</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {isBuyer ? "Buying" : "Selling"} <strong className="text-foreground">{order.usdtAmount} USDT</strong> at {order.rate} {order.currency}/USDT
+            {isBuyer ? t("p2p.room_buying") : t("p2p.room_selling")}{" "}
+            <strong className="text-foreground">{order.usdtAmount} USDT</strong>
+            {" · "}{t("p2p.rate_label")} {order.rate} {order.currency}/USDT
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Counterparty:</span>
+          <span className="text-xs text-muted-foreground">{t("p2p.counterparty_label")}</span>
           <span className="font-semibold text-sm">{counterpartyName}</span>
           <AgentBadgeDisplay badge={counterpartyBadge} />
         </div>
@@ -113,29 +147,34 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
           {(order.status === "pending" || order.status === "paid") && (
             <Card className="p-4 bg-card border-border">
               <p className="text-xs text-muted-foreground mb-1">
-                {order.status === "pending" ? (isBuyer ? "Time to pay" : "Waiting for buyer payment") : "Time to release USDT"}
+                {order.status === "pending"
+                  ? (isBuyer ? t("p2p.time_to_pay") : t("p2p.waiting_buyer_payment"))
+                  : t("p2p.waiting_seller_release")}
               </p>
-              <div className="text-3xl">
-                <CountdownTimer
-                  expiresAt={order.status === "pending" ? order.paymentExpiresAt : order.releaseExpiresAt!}
-                  warningThresholdSeconds={300}
-                />
-              </div>
+              {/* DR-061: WA-3 requires the seller to release within a set time but never gives
+                  the duration, so a paid order shows no countdown instead of an invented one. */}
+              {payableDeadline ? (
+                <div className="text-3xl">
+                  <CountdownTimer expiresAt={payableDeadline} warningThresholdSeconds={300} />
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("p2p.no_release_deadline")}</p>
+              )}
             </Card>
           )}
 
           {/* Order Summary */}
           <Card className="p-4 bg-card border-border space-y-3">
-            <h2 className="font-semibold text-sm border-b border-border pb-2">Order Summary</h2>
+            <h2 className="font-semibold text-sm border-b border-border pb-2">{t("p2p.order_summary")}</h2>
             {[
-              ["USDT Amount", `${order.usdtAmount} USDT`],
-              ["Rate", `${order.rate} ${order.currency}`],
-              ["Total", `${order.totalFiat.toLocaleString()} ${order.currency}`],
-              ["Payment Method", order.paymentMethod],
-            ].map(([k, v]) => (
-              <div key={k} className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{k}</span>
-                <span className="font-semibold">{v}</span>
+              { labelKey: "p2p.usdt_amount", value: `${order.usdtAmount} USDT` },
+              { labelKey: "history.col_rate", value: `${order.rate} ${order.currency}` },
+              { labelKey: "p2p.col_total", value: `${formatDecimalString(order.totalFiat, 2)} ${order.currency}` },
+              { labelKey: "p2p.payment_method_label", value: order.paymentMethod },
+            ].map(row => (
+              <div key={row.labelKey} className="flex justify-between text-sm">
+                <span className="text-muted-foreground">{t(row.labelKey)}</span>
+                <span className="font-semibold">{row.value}</span>
               </div>
             ))}
           </Card>
@@ -143,10 +182,10 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
           {/* Payment Details (shown to buyer when pending) */}
           {isBuyer && order.status === "pending" && (
             <Card className="p-4 bg-success/5 border-success/20 space-y-2">
-              <h2 className="font-semibold text-sm text-success">Payment Instructions</h2>
-              <p className="text-xs text-muted-foreground">Send exactly <strong className="text-foreground">{order.totalFiat.toLocaleString()} {order.currency}</strong> to:</p>
+              <h2 className="font-semibold text-sm text-success">{t("p2p.payment_instructions")}</h2>
+              <p className="text-xs text-muted-foreground">{t("p2p.send_exactly_before")} <strong className="text-foreground">{formatDecimalString(order.totalFiat, 2)} {order.currency}</strong> {t("p2p.send_exactly_after")}</p>
               <div className="p-2 bg-secondary rounded text-sm font-mono">01700-000000 ({order.paymentMethod})</div>
-              <p className="text-xs text-warning">⚠️ Send exact amount only. Do NOT send remarks.</p>
+              <p className="text-xs text-warning">⚠️ {t("p2p.exact_amount_only")}</p>
             </Card>
           )}
 
@@ -155,10 +194,10 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
             {order.status === "pending" && isBuyer && (
               <>
                 <Button onClick={handleMarkPaid} disabled={submitting} className="w-full bg-success hover:bg-success/90 text-success-fg font-bold gap-2">
-                  <CheckCircle className="w-4 h-4" /> I Have Paid
+                  <CheckCircle className="w-4 h-4" /> {t("p2p.i_have_paid")}
                 </Button>
                 <Button onClick={handleCancel} variant="secondary" className="w-full text-danger border-danger/20 hover:bg-danger/10 gap-2">
-                  <X className="w-4 h-4" /> Cancel Order
+                  <X className="w-4 h-4" /> {t("p2p.cancel_order")}
                 </Button>
               </>
             )}
@@ -166,27 +205,27 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
             {order.status === "paid" && !isBuyer && (
               <>
                 <Button onClick={handleRelease} disabled={submitting} className="w-full bg-success hover:bg-success/90 text-success-fg font-bold gap-2">
-                  <CheckCircle className="w-4 h-4" /> Release USDT
+                  <CheckCircle className="w-4 h-4" /> {t("p2p.release_usdt")}
                 </Button>
                 {/* IMPORTANT: Seller CANNOT cancel once buyer marks paid — only dispute is allowed */}
                 <Button onClick={() => setShowDisputeModal(true)} variant="secondary" className="w-full text-warning border-warning/20 hover:bg-warning/10 gap-2">
-                  <ShieldAlert className="w-4 h-4" /> Raise Dispute
+                  <ShieldAlert className="w-4 h-4" /> {t("p2p.raise_dispute")}
                 </Button>
                 <p className="text-[11px] text-center text-muted-foreground">
-                  Payment looks fake? Raise a dispute. You cannot cancel once buyer has marked as paid.
+                  {t("p2p.seller_dispute_hint")}
                 </p>
               </>
             )}
 
             {order.status === "completed" && (
               <div className="flex items-center gap-2 p-3 bg-success/10 rounded-lg border border-success/20 text-success font-semibold">
-                <CheckCircle className="w-5 h-5" /> Order Completed Successfully
+                <CheckCircle className="w-5 h-5" /> {t("p2p.order_completed")}
               </div>
             )}
 
             {order.status === "disputed" && (
               <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg border border-warning/20 text-warning font-semibold">
-                <AlertTriangle className="w-5 h-5" /> Dispute Under Review
+                <AlertTriangle className="w-5 h-5" /> {t("p2p.dispute_under_review")}
               </div>
             )}
           </div>
@@ -196,18 +235,20 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
         <Card className="lg:col-span-3 bg-card border-border flex flex-col" style={{ minHeight: 400, maxHeight: 520 }}>
           <div className="flex items-center gap-2 p-3 border-b border-border shrink-0">
             <MessageSquare className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-sm">Order Chat</span>
+            <span className="font-semibold text-sm">{t("p2p.order_chat")}</span>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-secondary/10">
             {chatMessages.map((msg, i) => (
               msg.sender === "system" ? (
                 <div key={i} className="text-center">
-                  <span className="text-[11px] text-muted-foreground bg-secondary px-3 py-1 rounded-full border border-border">{msg.text}</span>
+                  <span className="text-[11px] text-muted-foreground bg-secondary px-3 py-1 rounded-full border border-border">
+                    {msg.textKey ? t(msg.textKey) : msg.text}
+                  </span>
                 </div>
               ) : (
                 <div key={i} className={`flex ${msg.sender === (isBuyer ? "buyer" : "seller") ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.sender === (isBuyer ? "buyer" : "seller") ? "bg-primary text-primary-foreground" : "bg-card border border-border"}`}>
-                    <p>{msg.text}</p>
+                    <p>{msg.textKey ? t(msg.textKey) : msg.text}</p>
                     <p className="text-[10px] opacity-60 mt-0.5 text-right">{msg.time}</p>
                   </div>
                 </div>
@@ -219,7 +260,7 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && sendChat()}
-              placeholder="Type a message..."
+              placeholder={t("p2p.chat_ph")}
               className="flex-1 px-3 py-2 bg-secondary/30 border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               disabled={order.status === "completed" || order.status === "cancelled"}
             />
@@ -236,26 +277,130 @@ export default function OrderRoomPage({ params }: { params: Promise<{ orderId: s
           <Card className="w-full max-w-md p-6 bg-card border-border space-y-4">
             <div className="flex items-center gap-2 text-warning">
               <ShieldAlert className="w-5 h-5" />
-              <h2 className="font-bold text-lg">Raise Dispute</h2>
+              <h2 className="font-bold text-lg">{t("p2p.raise_dispute")}</h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Raising a dispute will notify Admin. Please provide a clear reason. This action cannot be undone.
+              {t("p2p.dispute_body")}
             </p>
             <textarea
               value={disputeReason}
               onChange={e => setDisputeReason(e.target.value)}
-              placeholder="Describe the issue in detail (e.g. Payment screenshot appears fake, amount doesn't match...)"
+              placeholder={t("p2p.dispute_ph")}
               className="w-full p-3 bg-secondary/30 border border-border rounded-md text-sm min-h-[100px] resize-y focus:outline-none focus:ring-1 focus:ring-warning"
             />
             <div className="flex gap-3">
-              <Button onClick={() => setShowDisputeModal(false)} variant="secondary" className="flex-1">Cancel</Button>
+              <Button onClick={() => setShowDisputeModal(false)} variant="secondary" className="flex-1">{t("common.cancel")}</Button>
               <Button onClick={handleDispute} disabled={submitting || !disputeReason.trim()} className="flex-1 bg-warning text-black hover:bg-warning/90 font-bold">
-                {submitting ? "Submitting..." : "Submit Dispute"}
+                {submitting ? t("p2p.dispute_submitting") : t("p2p.dispute_submit")}
               </Button>
             </div>
           </Card>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Buying from a post (REQ-129): the buyer states an amount inside the post's own limits, and the
+ * created order carries the seller's payment method and the post's payment window.
+ */
+function BuyFromPost({ post }: { post: P2PPost }) {
+  const { t } = useLocaleStore();
+  const router = useRouter();
+  const [amount, setAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState(post.paymentMethods[0] ?? "");
+  const [submitting, setSubmitting] = useState(false);
+
+  const total = isPositiveDecimal(amount) ? multiplyDecimalStrings(amount, post.rate) : "0";
+  const inRange =
+    isPositiveDecimal(amount) &&
+    compareDecimalStrings(amount, post.minAmount) >= 0 &&
+    compareDecimalStrings(amount, post.maxAmount) <= 0;
+
+  const onCreateOrder = async () => {
+    if (!inRange || !paymentMethod || submitting) return;
+    setSubmitting(true);
+    try {
+      const order = await createOrder(post, amount, paymentMethod);
+      router.push(`/p2p/${order.id}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="p-4 md:p-6 max-w-[700px] mx-auto space-y-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">{t("p2p.buy_from_post")}</h1>
+          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+            <span>{post.creatorName}</span>
+            <AgentBadgeDisplay badge={post.creatorBadge} />
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-lg font-bold text-primary">{post.rate} {post.currency}</p>
+          <p className="text-xs text-muted-foreground">{t("p2p.per_usdt")}</p>
+        </div>
+      </div>
+
+      {/* The rows below describe this sample post; no P2P backend exists yet. */}
+      <Card className="p-4 bg-card border-border space-y-3">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">{t("p2p.post_limits")}</span>
+          <span className="font-semibold">{post.minAmount}–{post.maxAmount} USDT</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">{t("p2p.payment_window_label")}</span>
+          <span className="font-semibold">{post.paymentWindowMinutes} {t("p2p.min_short")}</span>
+        </div>
+      </Card>
+
+      <Card className="p-4 bg-card border-border space-y-4">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground">{t("p2p.amount_usdt")}</label>
+          <Input
+            type="number"
+            inputMode="decimal"
+            step="any"
+            min={post.minAmount}
+            max={post.maxAmount}
+            placeholder={`${t("p2p.e_g")} ${post.minAmount}`}
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+            className="bg-secondary/30 mt-1.5 font-mono"
+          />
+          {amount && !inRange && (
+            <p className="text-xs text-destructive mt-1.5">
+              {t("p2p.range_before")} {post.minAmount} {t("p2p.range_mid")} {post.maxAmount} {t("p2p.range_after")}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-1.5">{t("p2p.payment_method_label")}</p>
+          <div className="flex flex-wrap gap-2">
+            {post.paymentMethods.map(m => (
+              <button key={m} type="button" onClick={() => setPaymentMethod(m)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                  paymentMethod === m ? "bg-primary/15 text-primary border-primary/30" : "bg-secondary border-border text-muted-foreground"
+                }`}>
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center text-sm border-t border-border pt-3">
+          <span className="text-muted-foreground">{t("p2p.you_pay")}</span>
+          <span className="font-mono font-bold">{formatDecimalString(total, 2)} {post.currency}</span>
+        </div>
+
+        <Button onClick={onCreateOrder} disabled={!inRange || !paymentMethod || submitting} className="w-full font-bold py-3">
+          {submitting ? t("p2p.creating_order") : t("p2p.create_order")}
+        </Button>
+      </Card>
     </div>
   );
 }

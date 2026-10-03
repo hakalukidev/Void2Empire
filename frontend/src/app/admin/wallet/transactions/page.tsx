@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
+import { SampleBadge } from "@/components/home/sample-badge";
+import { addDecimalStrings, formatDecimalString } from "@/lib/utils/decimal";
 import { Wallet } from "lucide-react";
 
 type TxType = "deposit" | "withdrawal" | "trade_fee" | "referral_reward" | "p2p" | "funding";
@@ -24,14 +26,16 @@ const TX_TYPE_LABEL: Record<TxType, string> = {
   funding:         "Funding",
 };
 
+// Layout samples — no ledger backend serves these rows. Amounts and fees are
+// decimal STRINGS exactly as the ledger returns them (Sec46 rule #40).
 const MOCK_TRANSACTIONS = [
-  { id: "TX-001", user: "Rafiq Ahmed",    asset: "USDT", amount: 500,    fee: 0,     type: "deposit"         as TxType, status: "completed", date: "2024-09-21 17:30" },
-  { id: "TX-002", user: "Sadia Islam",    asset: "USDT", amount: 200,    fee: 1,     type: "withdrawal"      as TxType, status: "pending",   date: "2024-09-21 18:00" },
-  { id: "TX-003", user: "Rafiq Ahmed",    asset: "USDT", amount: 4.8,    fee: 0,     type: "trade_fee"       as TxType, status: "completed", date: "2024-09-21 16:00" },
-  { id: "TX-004", user: "Nasrin Akter",   asset: "USDT", amount: 25,     fee: 0,     type: "referral_reward" as TxType, status: "completed", date: "2024-09-20 14:00" },
-  { id: "TX-005", user: "Karim Hossain",  asset: "USDT", amount: 150,    fee: 2,     type: "p2p"             as TxType, status: "completed", date: "2024-09-20 11:00" },
-  { id: "TX-006", user: "Tahmina Begum",  asset: "USDT", amount: 1000,   fee: 0,     type: "deposit"         as TxType, status: "completed", date: "2024-09-19 09:00" },
-  { id: "TX-007", user: "Arif Chowdhury", asset: "USDT", amount: 100,    fee: 10,    type: "funding"         as TxType, status: "completed", date: "2024-09-19 08:00" },
+  { id: "TX-001", user: "Rafiq Ahmed",    asset: "USDT", amount: "500",  fee: "0",   type: "deposit"         as TxType, status: "completed", date: "2024-09-21 17:30" },
+  { id: "TX-002", user: "Sadia Islam",    asset: "USDT", amount: "200",  fee: "1",   type: "withdrawal"      as TxType, status: "pending",   date: "2024-09-21 18:00" },
+  { id: "TX-003", user: "Rafiq Ahmed",    asset: "USDT", amount: "4.8",  fee: "0",   type: "trade_fee"       as TxType, status: "completed", date: "2024-09-21 16:00" },
+  { id: "TX-004", user: "Nasrin Akter",   asset: "USDT", amount: "25",   fee: "0",   type: "referral_reward" as TxType, status: "completed", date: "2024-09-20 14:00" },
+  { id: "TX-005", user: "Karim Hossain",  asset: "USDT", amount: "150",  fee: "2",   type: "p2p"             as TxType, status: "completed", date: "2024-09-20 11:00" },
+  { id: "TX-006", user: "Tahmina Begum",  asset: "USDT", amount: "1000", fee: "0",   type: "deposit"         as TxType, status: "completed", date: "2024-09-19 09:00" },
+  { id: "TX-007", user: "Arif Chowdhury", asset: "USDT", amount: "100",  fee: "10",  type: "funding"         as TxType, status: "completed", date: "2024-09-19 08:00" },
 ];
 
 export default function AdminTransactionsPage() {
@@ -44,11 +48,15 @@ export default function AdminTransactionsPage() {
     return matchType && matchStatus;
   });
 
+  const totalVolume = addDecimalStrings(...MOCK_TRANSACTIONS.map((tx) => tx.amount));
+  const totalFees = addDecimalStrings(...MOCK_TRANSACTIONS.map((tx) => tx.fee));
+
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-[1400px] mx-auto">
       <div className="flex items-center gap-3">
         <Wallet className="w-6 h-6 text-primary" />
         <h1 className="text-2xl font-bold tracking-tight">All Transactions</h1>
+        <SampleBadge className="ml-auto" />
       </div>
 
       {/* Summary */}
@@ -59,11 +67,11 @@ export default function AdminTransactionsPage() {
         </Card>
         <Card className="p-4 bg-card border-border">
           <p className="text-xs text-muted-foreground">Total Volume (USDT)</p>
-          <p className="text-2xl font-bold mt-1">${MOCK_TRANSACTIONS.reduce((s, t) => s + t.amount, 0).toLocaleString()}</p>
+          <p className="text-2xl font-bold mt-1">${formatDecimalString(totalVolume, 2)}</p>
         </Card>
         <Card className="p-4 bg-card border-border">
           <p className="text-xs text-muted-foreground">Total Fees Collected</p>
-          <p className="text-2xl font-bold mt-1 text-success">${MOCK_TRANSACTIONS.reduce((s, t) => s + t.fee, 0).toFixed(2)}</p>
+          <p className="text-2xl font-bold mt-1 text-success">${formatDecimalString(totalFees, 2)}</p>
         </Card>
         <Card className="p-4 bg-card border-border">
           <p className="text-xs text-muted-foreground">Pending</p>

@@ -2,6 +2,7 @@
 
 import { forwardRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { Eye, EyeOff, type LucideIcon } from "lucide-react";
+import { useLocaleStore } from "@/store/locale-store";
 import { cn } from "@/lib/utils/cn";
 
 export const authInputClass =
@@ -87,6 +88,7 @@ type PasswordInputProps = Omit<IconInputProps, "type" | "trailing">;
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>((props, ref) => {
   const [visible, setVisible] = useState(false);
+  const { t } = useLocaleStore();
   return (
     <IconInput
       ref={ref}
@@ -95,7 +97,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>((p
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={visible ? t("auth.hide_password") : t("auth.show_password")}
           aria-pressed={visible}
           className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >

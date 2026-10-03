@@ -77,7 +77,7 @@ export function PublicNavbar() {
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          aria-label="Toggle menu"
+          aria-label={t("common.toggle_menu")}
           className="text-white md:hidden"
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

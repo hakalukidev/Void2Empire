@@ -36,12 +36,13 @@ export default function DashboardPage() {
   const funding = balances?.funding ?? "0.00";
   const profit = balances?.profit ?? "0.00";
   const currency = balances?.currency ?? "USDT";
+  const fundingAsset = balances?.fundingAsset ?? "VUSDT";
   const total = addDecimalStrings(available, funding, profit);
 
   const breakdown = [
-    { label: t("wallet.available_balance"), value: available, icon: WalletIcon, accent: "text-primary" },
-    { label: t("wallet.funding_balance"), value: funding, icon: Lock, accent: "text-warning" },
-    { label: t("wallet.profit_balance"), value: profit, icon: TrendingUp, accent: "text-success" },
+    { label: t("wallet.available_balance"), value: available, asset: currency, icon: WalletIcon, accent: "text-primary" },
+    { label: t("wallet.funding_balance"), value: funding, asset: fundingAsset, icon: Lock, accent: "text-warning" },
+    { label: t("wallet.profit_balance"), value: profit, asset: currency, icon: TrendingUp, accent: "text-success" },
   ];
 
   return (

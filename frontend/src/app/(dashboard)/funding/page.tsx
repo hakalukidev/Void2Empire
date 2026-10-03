@@ -13,6 +13,7 @@ import {
   purchaseFunding,
   closeFundingPurchase,
   quoteFunding,
+  FUNDING_TRADING_LEVERAGE,
   type FundingRatioConfig,
   type FundingMilestone,
   type FundingPurchase,
@@ -63,7 +64,9 @@ export default function FundingPage() {
     if (!active) return;
     const { profitCredited } = await closeFundingPurchase(active.id);
     setActive(null);
-    toast.success(`${t("funding.close_success")}: ${profitCredited} ${config?.currency ?? "USDT"}`);
+    // The reward is a multiple of the funding amount, so it carries the funding
+    // asset (VUSDT), not the currency the purchase was paid in.
+    toast.success(`${t("funding.close_success")}: ${profitCredited} ${config?.fundingAsset ?? "VUSDT"}`);
   };
 
   return (
@@ -76,7 +79,7 @@ export default function FundingPage() {
       {active ? (
         <ActivePosition
           purchase={active}
-          currency={config?.currency ?? "USDT"}
+          currency={config?.fundingAsset ?? "VUSDT"}
           milestones={milestones}
           onClose={onClose}
           t={t}
@@ -106,7 +109,7 @@ export default function FundingPage() {
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">{t("funding.you_get")}</p>
                   <p className="text-lg font-semibold text-primary">
-                    {p.funding} <span className="text-sm text-muted-foreground">{config.currency}</span>
+                    {p.funding} <span className="text-sm text-muted-foreground">{config.fundingAsset}</span>
                   </p>
                 </button>
               ))}
@@ -130,13 +133,13 @@ export default function FundingPage() {
                 />
                 <span className="text-sm text-muted-foreground">→</span>
                 <div className="rounded-md border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-bold text-primary">
-                  {isPositiveDecimal(paidAmount) ? liveFunding : "0"} {config?.currency ?? "USDT"}
+                  {isPositiveDecimal(paidAmount) ? liveFunding : "0"} {config?.fundingAsset ?? "VUSDT"}
                 </div>
               </div>
               {config && (
                 <p className="mt-2 text-xs text-muted-foreground">
                   {t("funding.min")} {config.minAmount} · {t("funding.max")} {config.maxAmount} ·{" "}
-                  {t("funding.ratio_note")}
+                  {config.ratio}× {t("funding.ratio_note")}
                 </p>
               )}
               {paidAmount && !amountValid && (
@@ -150,7 +153,7 @@ export default function FundingPage() {
               className="mt-6 w-full sm:w-auto"
             >
               {t("funding.confirm")}
-              {isPositiveDecimal(paidAmount) && amountValid && ` — ${liveFunding} ${config?.currency ?? ""}`}
+              {isPositiveDecimal(paidAmount) && amountValid && ` — ${liveFunding} ${config?.fundingAsset ?? ""}`}
             </Button>
           </Card>
 
@@ -163,6 +166,20 @@ export default function FundingPage() {
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
                 {t("funding.restricted_desc")}
+              </p>
+            </Card>
+
+            <Card className="border-border bg-card p-5">
+              <div className="mb-2 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                <h3 className="text-sm font-semibold">{t("funding.leverage_title")}</h3>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold tracking-tight">{FUNDING_TRADING_LEVERAGE}×</p>
+                <p className="text-xs text-muted-foreground">{t("funding.leverage_fixed")}</p>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {t("funding.leverage_desc")}
               </p>
             </Card>
 
@@ -183,6 +200,7 @@ function MilestoneTable({
   title: string;
   note: string;
 }) {
+  const { t } = useLocaleStore();
   return (
     <Card className="border-border bg-card p-5">
       <div className="mb-3 flex items-center gap-2">
@@ -193,8 +211,8 @@ function MilestoneTable({
       <table className="w-full whitespace-nowrap text-sm">
         <thead className="text-xs text-muted-foreground">
           <tr>
-            <th className="py-1 text-left font-medium">Profit</th>
-            <th className="py-1 text-right font-medium">Reward</th>
+            <th className="py-1 text-left font-medium">{t("funding.milestone_profit")}</th>
+            <th className="py-1 text-right font-medium">{t("funding.milestone_reward")}</th>
           </tr>
         </thead>
         <tbody>
@@ -230,6 +248,10 @@ function ActivePosition({
 }) {
   const rows = [
     { label: t("funding.active.funding_balance"), value: `${purchase.fundingAmount} ${currency}` },
+    {
+      label: t("funding.leverage_title"),
+      value: `${FUNDING_TRADING_LEVERAGE}× ${t("funding.leverage_fixed_short")}`,
+    },
     { label: t("funding.active.current_loss"), value: `${purchase.currentLoss} ${currency}` },
     { label: t("funding.active.max_loss"), value: `${purchase.maxLossThreshold} ${currency}` },
     {

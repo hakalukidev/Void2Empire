@@ -7,6 +7,8 @@ import {
   ArrowUpRight, ArrowDownRight, CheckCircle2, XCircle, AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
+import { KYC_LEVEL_LABEL } from "@/services/kyc.service";
+import type { KycLevel } from "@/types";
 
 const KPI_CARDS = [
   { label: "Total Users",       value: "1,284",    sub: "+12 today",    icon: Users,       color: "text-primary",  bg: "bg-primary/10" },
@@ -22,12 +24,12 @@ const PENDING = [
   { label: "Open Disputes (P2P)",value: 3,  href: "/admin/p2p",                color: "text-danger",  icon: AlertTriangle },
 ];
 
-const RECENT_USERS = [
-  { name: "Rafiq Ahmed",     email: "rafiq@example.com",   kyc: "verified",   role: "user",  joined: "2024-09-21" },
-  { name: "Tahmina Begum",   email: "tahmina@example.com", kyc: "pending",    role: "user",  joined: "2024-09-21" },
-  { name: "Karim Hossain",   email: "karim@example.com",   kyc: "unverified", role: "user",  joined: "2024-09-20" },
-  { name: "Sadia Islam",     email: "sadia@example.com",   kyc: "verified",   role: "user",  joined: "2024-09-20" },
-  { name: "Arif Chowdhury",  email: "arif@example.com",    kyc: "rejected",   role: "user",  joined: "2024-09-19" },
+const RECENT_USERS: { name: string; email: string; kycLevel: KycLevel; role: string; joined: string }[] = [
+  { name: "Rafiq Ahmed",     email: "rafiq@example.com",   kycLevel: "level_2", role: "user",  joined: "2024-09-21" },
+  { name: "Tahmina Begum",   email: "tahmina@example.com", kycLevel: "level_1", role: "user",  joined: "2024-09-21" },
+  { name: "Karim Hossain",   email: "karim@example.com",   kycLevel: "none",    role: "user",  joined: "2024-09-20" },
+  { name: "Sadia Islam",     email: "sadia@example.com",   kycLevel: "level_1", role: "user",  joined: "2024-09-20" },
+  { name: "Arif Chowdhury",  email: "arif@example.com",    kycLevel: "none",    role: "user",  joined: "2024-09-19" },
 ];
 
 const RECENT_ACTIVITY = [
@@ -38,11 +40,10 @@ const RECENT_ACTIVITY = [
   { user: "Sadia Islam",   action: "Withdrawal request $250 USDT",    time: "1 hr ago",   type: "withdrawal" },
 ];
 
-const KYC_BADGE: Record<string, string> = {
-  verified:   "bg-success/10 text-success border-success/20",
-  pending:    "bg-warning/10 text-warning border-warning/20",
-  unverified: "bg-secondary/50 text-muted-foreground border-border",
-  rejected:   "bg-danger/10 text-danger border-danger/20",
+const KYC_BADGE: Record<KycLevel, string> = {
+  none: "bg-secondary/50 text-muted-foreground border-border",
+  level_1: "bg-primary/10 text-primary border-primary/20",
+  level_2: "bg-success/10 text-success border-success/20",
 };
 
 const ACTIVITY_DOT: Record<string, string> = {
@@ -122,8 +123,8 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border capitalize ${KYC_BADGE[user.kyc]}`}>
-                    {user.kyc}
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${KYC_BADGE[user.kycLevel]}`}>
+                    {KYC_LEVEL_LABEL[user.kycLevel]}
                   </span>
                   <span className="text-xs text-muted-foreground hidden sm:block">{user.joined}</span>
                 </div>

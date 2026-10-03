@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AgentBadgeDisplay } from "@/components/p2p/agent-badge";
+import { SampleBadge } from "@/components/home/sample-badge";
 import { getPosts, P2PPost, PostType } from "@/services/p2p.service";
+import { useLocaleStore } from "@/store/locale-store";
 import { ArrowLeftRight, Plus, Search, Shield, Star } from "lucide-react";
 
 export default function P2PMarketplacePage() {
+  const { t } = useLocaleStore();
   const [tab, setTab] = useState<PostType>("sell"); // "sell" = user wants to buy USDT → sees sell posts
   const [posts, setPosts] = useState<P2PPost[]>([]);
   const [search, setSearch] = useState("");
@@ -35,33 +38,33 @@ export default function P2PMarketplacePage() {
         <div className="flex items-center gap-3">
           <ArrowLeftRight className="w-6 h-6 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">P2P Marketplace</h1>
-            <p className="text-sm text-muted-foreground">Buy & Sell USDT with other users</p>
+            <h1 className="text-2xl font-bold tracking-tight">{t("p2p.marketplace_title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("p2p.marketplace_sub")}</p>
           </div>
         </div>
 
         <div className="flex gap-2">
           <Link href="/p2p/orders">
-            <Button variant="secondary" size="sm" className="h-9 text-xs border-border">My Orders</Button>
+            <Button variant="secondary" size="sm" className="h-9 text-xs border-border">{t("p2p.my_orders")}</Button>
           </Link>
           <Link href="/p2p/agent">
             <Button variant="secondary" size="sm" className="h-9 text-xs border-border">
-              <Shield className="w-3.5 h-3.5 mr-1.5" /> Agent
+              <Shield className="w-3.5 h-3.5 mr-1.5" /> {t("p2p.agent")}
             </Button>
           </Link>
           {canCreatePost ? (
             <Link href="/p2p/create">
               <Button size="sm" className="h-9 text-xs bg-primary text-primary-foreground gap-1.5">
-                <Plus className="w-4 h-4" /> Create Post
+                <Plus className="w-4 h-4" /> {t("p2p.create_post")}
               </Button>
             </Link>
           ) : (
             <div className="relative group">
               <Button size="sm" disabled className="h-9 text-xs opacity-50 gap-1.5">
-                <Plus className="w-4 h-4" /> Create Post
+                <Plus className="w-4 h-4" /> {t("p2p.create_post")}
               </Button>
               <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block w-56 p-2 rounded-md bg-popover border border-border text-xs text-muted-foreground z-50 shadow-lg">
-                Requires 1 month account age and 20+ completed P2P transactions.
+                {t("p2p.create_requires")}
               </div>
             </div>
           )}
@@ -72,11 +75,11 @@ export default function P2PMarketplacePage() {
       <div className="flex gap-1 p-1 bg-secondary/30 border border-border rounded-lg w-fit">
         <button onClick={() => { if (tab === "sell") return; setLoading(true); setTab("sell"); }}
           className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === "sell" ? "bg-success/15 text-success border border-success/20" : "text-muted-foreground hover:text-foreground"}`}>
-          Buy USDT
+          {t("p2p.tab_buy")}
         </button>
         <button onClick={() => { if (tab === "buy") return; setLoading(true); setTab("buy"); }}
           className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors ${tab === "buy" ? "bg-danger/15 text-danger border border-danger/20" : "text-muted-foreground hover:text-foreground"}`}>
-          Sell USDT
+          {t("p2p.tab_sell")}
         </button>
       </div>
 
@@ -84,18 +87,23 @@ export default function P2PMarketplacePage() {
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search by seller or payment method..." className="pl-9 bg-secondary/30" value={search} onChange={e => setSearch(e.target.value)} />
+          <Input placeholder={t("p2p.search_ph")} className="pl-9 bg-secondary/30" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
       </div>
 
       {/* Post List */}
       <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <SampleBadge />
+          {/* No P2P backend exists yet, so every post below is a layout sample. */}
+          <p className="text-xs text-muted-foreground">{t("p2p.sample_note")}</p>
+        </div>
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <Card key={i} className="h-28 animate-pulse bg-secondary/30 border-border" />
           ))
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-muted-foreground">No posts found.</div>
+          <div className="py-16 text-center text-muted-foreground">{t("p2p.no_posts")}</div>
         ) : filtered.map(post => (
           <PostCard key={post.id} post={post} isBuying={tab === "sell"} />
         ))}
@@ -105,6 +113,7 @@ export default function P2PMarketplacePage() {
 }
 
 function PostCard({ post, isBuying }: { post: P2PPost; isBuying: boolean }) {
+  const { t } = useLocaleStore();
   return (
     <Card className="p-4 md:p-5 bg-card border-border hover:border-primary/30 transition-colors">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -120,7 +129,7 @@ function PostCard({ post, isBuying }: { post: P2PPost; isBuying: boolean }) {
             </div>
             <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
               <Star className="w-3 h-3 text-brand-blue-400 fill-brand-blue-400" />
-              <span>{post.completedTrades} completed</span>
+              <span>{post.completedTrades} {t("p2p.completed")}</span>
             </div>
           </div>
         </div>
@@ -128,10 +137,10 @@ function PostCard({ post, isBuying }: { post: P2PPost; isBuying: boolean }) {
         {/* Rate & limits */}
         <div className="flex flex-col items-start md:items-center gap-1">
           <div className="text-xl font-bold">
-            1 USDT = <span className="text-primary">{post.rate} {post.currency}</span>
+            {t("p2p.rate_formula")} <span className="text-primary">{post.rate} {post.currency}</span>
           </div>
           <div className="text-xs text-muted-foreground">
-            Limit: {post.minAmount}–{post.maxAmount} USDT
+            {t("p2p.limit_prefix")} {post.minAmount}–{post.maxAmount} USDT
           </div>
         </div>
 
@@ -144,7 +153,7 @@ function PostCard({ post, isBuying }: { post: P2PPost; isBuying: boolean }) {
           </div>
           <Link href={`/p2p/${post.id}`}>
             <Button size="sm" className={`h-8 text-xs px-5 font-bold ${isBuying ? "bg-success hover:bg-success/90 text-success-fg" : "bg-danger hover:bg-danger/90 text-danger-fg"}`}>
-              {isBuying ? "Buy" : "Sell"}
+              {isBuying ? t("spot.buy") : t("spot.sell")}
             </Button>
           </Link>
         </div>

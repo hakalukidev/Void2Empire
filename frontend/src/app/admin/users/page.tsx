@@ -6,25 +6,42 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Users, ShieldCheck, ShieldAlert, TrendingUp, MoreHorizontal } from "lucide-react";
 import { formatDecimalString } from "@/lib/utils/decimal";
+import { KYC_LEVEL_LABEL } from "@/services/kyc.service";
+import type { KycLevel } from "@/types";
 
 type UserStatus = "active" | "suspended" | "banned" | "pending_verification";
-type KycStatus = "verified" | "unverified" | "pending" | "rejected";
+// KYC is two approved levels, not a single verified flag (v20 Q37). `kycReview`
+// is what the newest submission did; a rejection leaves the user on whatever
+// level they already held.
+type KycReview = "none" | "pending" | "rejected";
 
 interface AdminUser {
   id: string; name: string; email: string; country: string;
-  status: UserStatus; kyc: KycStatus; tradingEnabled: boolean;
+  status: UserStatus; kycLevel: KycLevel; kycReview: KycReview; tradingEnabled: boolean;
   balance: string; demoBalance: string; joined: string;
 }
 
 const MOCK_USERS: AdminUser[] = [
-  { id: "U001", name: "Rafiq Ahmed",    email: "rafiq@example.com",    country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: "2400",  demoBalance: "10000", joined: "2024-09-01" },
-  { id: "U002", name: "Tahmina Begum",  email: "tahmina@example.com",  country: "BD", status: "active",    kyc: "pending",    tradingEnabled: false, balance: "500",   demoBalance: "10000", joined: "2024-09-10" },
-  { id: "U003", name: "Karim Hossain",  email: "karim@example.com",    country: "BD", status: "active",    kyc: "unverified", tradingEnabled: false, balance: "0",     demoBalance: "10000", joined: "2024-09-15" },
-  { id: "U004", name: "Sadia Islam",    email: "sadia@example.com",    country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: "8200",  demoBalance: "10000", joined: "2024-09-18" },
-  { id: "U005", name: "Arif Chowdhury", email: "arif@example.com",     country: "BD", status: "suspended", kyc: "rejected",   tradingEnabled: false, balance: "100",   demoBalance: "10000", joined: "2024-09-19" },
-  { id: "U006", name: "Nasrin Akter",   email: "nasrin@example.com",   country: "BD", status: "active",    kyc: "verified",   tradingEnabled: true,  balance: "15000", demoBalance: "10000", joined: "2024-09-20" },
-  { id: "U007", name: "Jamal Uddin",    email: "jamal@example.com",    country: "BD", status: "banned",    kyc: "rejected",   tradingEnabled: false, balance: "0",     demoBalance: "10000", joined: "2024-09-20" },
+  { id: "U001", name: "Rafiq Ahmed",    email: "rafiq@example.com",    country: "BD", status: "active",    kycLevel: "level_2", kycReview: "none",    tradingEnabled: true,  balance: "2400",  demoBalance: "10000", joined: "2024-09-01" },
+  { id: "U002", name: "Tahmina Begum",  email: "tahmina@example.com",  country: "BD", status: "active",    kycLevel: "level_1", kycReview: "pending", tradingEnabled: false, balance: "500",   demoBalance: "10000", joined: "2024-09-10" },
+  { id: "U003", name: "Karim Hossain",  email: "karim@example.com",    country: "BD", status: "active",    kycLevel: "none",    kycReview: "none",    tradingEnabled: false, balance: "0",     demoBalance: "10000", joined: "2024-09-15" },
+  { id: "U004", name: "Sadia Islam",    email: "sadia@example.com",    country: "BD", status: "active",    kycLevel: "level_1", kycReview: "none",    tradingEnabled: true,  balance: "8200",  demoBalance: "10000", joined: "2024-09-18" },
+  { id: "U005", name: "Arif Chowdhury", email: "arif@example.com",     country: "BD", status: "suspended", kycLevel: "none",    kycReview: "rejected", tradingEnabled: false, balance: "100",   demoBalance: "10000", joined: "2024-09-19" },
+  { id: "U006", name: "Nasrin Akter",   email: "nasrin@example.com",   country: "BD", status: "active",    kycLevel: "level_2", kycReview: "none",    tradingEnabled: true,  balance: "15000", demoBalance: "10000", joined: "2024-09-20" },
+  { id: "U007", name: "Jamal Uddin",    email: "jamal@example.com",    country: "BD", status: "banned",    kycLevel: "level_1", kycReview: "rejected", tradingEnabled: false, balance: "0",     demoBalance: "10000", joined: "2024-09-20" },
 ];
+
+const KYC_STYLE: Record<KycLevel, string> = {
+  none: "bg-secondary/50 text-muted-foreground border-border",
+  level_1: "bg-primary/10 text-primary border-primary/20",
+  level_2: "bg-success/10 text-success border-success/20",
+};
+
+const REVIEW_STYLE: Record<KycReview, string> = {
+  none: "text-muted-foreground",
+  pending: "text-warning",
+  rejected: "text-danger",
+};
 
 const STATUS_STYLE: Record<UserStatus, string> = {
   active:               "bg-success/10 text-success border-success/20",
@@ -33,23 +50,16 @@ const STATUS_STYLE: Record<UserStatus, string> = {
   pending_verification: "bg-primary/10 text-primary border-primary/20",
 };
 
-const KYC_STYLE: Record<KycStatus, string> = {
-  verified:   "bg-success/10 text-success border-success/20",
-  pending:    "bg-warning/10 text-warning border-warning/20",
-  unverified: "bg-secondary/50 text-muted-foreground border-border",
-  rejected:   "bg-danger/10 text-danger border-danger/20",
-};
-
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<UserStatus | "all">("all");
-  const [kycFilter, setKycFilter] = useState<KycStatus | "all">("all");
+  const [kycFilter, setKycFilter] = useState<KycLevel | "all">("all");
   const [users, setUsers] = useState<AdminUser[]>(MOCK_USERS);
 
   const filtered = users.filter((u) => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || u.status === statusFilter;
-    const matchKyc = kycFilter === "all" || u.kyc === kycFilter;
+    const matchKyc = kycFilter === "all" || u.kycLevel === kycFilter;
     return matchSearch && matchStatus && matchKyc;
   });
 
@@ -89,13 +99,12 @@ export default function AdminUsersPage() {
           <option value="pending_verification">Pending Verification</option>
         </select>
 
-        <select value={kycFilter} onChange={(e) => setKycFilter(e.target.value as KycStatus | "all")}
+        <select value={kycFilter} onChange={(e) => setKycFilter(e.target.value as KycLevel | "all")}
           className="px-3 py-2 rounded-md border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-          <option value="all">All KYC</option>
-          <option value="verified">Verified</option>
-          <option value="pending">Pending</option>
-          <option value="unverified">Unverified</option>
-          <option value="rejected">Rejected</option>
+          <option value="all">All KYC levels</option>
+          <option value="none">Unverified</option>
+          <option value="level_1">Level 1</option>
+          <option value="level_2">Level 2</option>
         </select>
       </Card>
 
@@ -136,10 +145,17 @@ export default function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${KYC_STYLE[user.kyc]}`}>
-                      {user.kyc === "verified" ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
-                      {user.kyc}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${KYC_STYLE[user.kycLevel]}`}>
+                        {user.kycLevel === "none" ? <ShieldAlert className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                        {KYC_LEVEL_LABEL[user.kycLevel]}
+                      </span>
+                      {user.kycReview !== "none" && (
+                        <span className={`text-xs ${REVIEW_STYLE[user.kycReview]}`}>
+                          {user.kycReview === "pending" ? "review pending" : "latest rejected"}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-center">
                     <button

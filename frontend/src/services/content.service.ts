@@ -22,7 +22,7 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
   {
     id: "ANN-002",
     title: "New Trading Pairs Added",
-    body: "SOL-USDT and BNB-USDT perpetual futures are now live. Leverage and margin settings are available on each market page.",
+    body: "Spot and Futures markets are open for the platform coins — V2E, Infinity, River and Onion. Leverage and margin settings are available on each market page.",
     type: "success",
     publishedAt: "2024-09-20",
   },

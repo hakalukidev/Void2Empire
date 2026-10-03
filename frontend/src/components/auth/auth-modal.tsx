@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { LogoMark } from "@/components/ui/logo";
 import { AuthModalProvider } from "@/components/auth/auth-context";
+import { useLocaleStore } from "@/store/locale-store";
 import { cn } from "@/lib/utils/cn";
 
 const FOCUSABLE =
@@ -12,16 +13,19 @@ const FOCUSABLE =
 
 // Shell for the intercepted /login and /register routes (app/@auth). It only
 // ever opens on a client-side navigation, so closing is a history step back.
+// The label is a message key, not text: these routes are rendered by server
+// components, which cannot read the locale at navigation time.
 export function AuthModal({
-  label,
+  labelKey,
   wide,
   children,
 }: {
-  label: string;
+  labelKey: string;
   wide?: boolean;
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const { t } = useLocaleStore();
   const panelRef = useRef<HTMLDivElement>(null);
 
   const close = useCallback(() => router.back(), [router]);
@@ -78,7 +82,7 @@ export function AuthModal({
           ref={panelRef}
           role="dialog"
           aria-modal="true"
-          aria-label={label}
+          aria-label={t(labelKey)}
           className={cn(
             "relative w-full rounded-2xl border border-border bg-card shadow-2xl shadow-black/50 animate-modal-in",
             wide ? "max-w-[480px]" : "max-w-[420px]"
@@ -91,7 +95,7 @@ export function AuthModal({
           <button
             type="button"
             onClick={close}
-            aria-label="Close"
+            aria-label={t("auth.close")}
             className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <X className="h-4 w-4" />

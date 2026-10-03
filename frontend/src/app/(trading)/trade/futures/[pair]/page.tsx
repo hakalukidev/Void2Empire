@@ -4,9 +4,12 @@ import Link from "next/link";
 import { use, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DecimalField } from "@/components/ui/decimal-field";
 import { TradingChart, type ChartPoint } from "@/components/ui/trading-chart";
 import { SampleBadge } from "@/components/home/sample-badge";
 import { CountdownTimer } from "@/components/p2p/countdown-timer";
+import { ProductUnavailable } from "@/components/trading/product-unavailable";
+import { supportsProduct } from "@/config/markets";
 import { useLocaleStore } from "@/store/locale-store";
 import {
   calculateFeePreview,
@@ -21,19 +24,38 @@ import {
   sampleMarkets,
 } from "@/config/sample-market-data";
 import {
+  cancelFuturesOrder,
+  fetchFuturesOpenOrders,
+  placeFuturesOrder,
+  type FuturesOrder,
+} from "@/services/futures-positions.service";
+import {
   clampDecimalPlaces,
   compareDecimalStrings,
   formatDecimalString,
+  groupDecimalString,
   isPositiveDecimal,
   multiplyDecimalByInteger,
 } from "@/lib/utils/decimal";
+import { parsePair } from "@/lib/utils/pair";
 import { Info, TrendingDown, TrendingUp } from "lucide-react";
+import toast from "react-hot-toast";
 
 // v14 Q6: leverage runs from 5x to 50x (5, 6, 7, 8, 9, 10 … 50). The previous
 // 1-100 slider offered a range the client never approved.
 const LEVERAGE_MIN = 5;
 const LEVERAGE_MAX = 50;
 const LEVERAGE_CHIPS = [5, 10, 20, 30, 50];
+
+/** Keeps a decimal field from accepting anything the parser would choke on. */
+function isDecimalText(value: string): boolean {
+  return value === "" || /^\d*\.?\d*$/.test(value);
+}
+
+/** Stop Loss / Take Profit are optional, so an empty value is acceptable. */
+function isOptionalDecimal(value: string): boolean {
+  return value === "" || isPositiveDecimal(value);
+}
 
 interface PageProps {
   params: Promise<{ pair: string }>;
@@ -43,17 +65,24 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
   const { pair } = use(params);
   const { t } = useLocaleStore();
 
-  const marketId = pair.replace("-", "").toUpperCase();
-  const displayPair = pair.replace("-", "/").toUpperCase();
+  // Markets links, demo tabs and the catalog all spell pairs differently; one
+  // normaliser keeps the routing key, the label and the service lookups in step.
+  const { symbol: marketId, display: displayPair } = parsePair(pair);
 
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [leverage, setLeverage] = useState(10);
   const [margin, setMargin] = useState("");
+  const [limitPrice, setLimitPrice] = useState("");
+  const [stopLoss, setStopLoss] = useState("");
+  const [takeProfit, setTakeProfit] = useState("");
+  const [orders, setOrders] = useState<FuturesOrder[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const [fundingConfig, setFundingConfig] = useState<FundingConfig | null>(null);
   const [side, setSide] = useState<"long" | "short">("long");
 
   useEffect(() => {
     getFundingConfig(displayPair).then(setFundingConfig);
+    fetchFuturesOpenOrders().then(setOrders);
   }, [displayPair]);
 
   // No futures backend and no price feed yet (DR-023), so the header and chart
@@ -69,6 +98,12 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
   const fees = calculateFeePreview(hasMargin ? margin : "0", leverage);
   const notional = hasMargin ? fees.notional : "0";
 
+  // v20 Q3: a limit order must carry a price, and Stop Loss / Take Profit have to
+  // be supported. Both triggers are optional, so an empty field is valid.
+  const hasLimitPrice = orderType === "market" || isPositiveDecimal(limitPrice);
+  const triggersValid = isOptionalDecimal(stopLoss) && isOptionalDecimal(takeProfit);
+  const canSubmit = hasMargin && hasLimitPrice && triggersValid && !submitting;
+
   const fundingRatePct = fundingConfig
     ? clampDecimalPlaces(multiplyDecimalByInteger(fundingConfig.fundingRate, 100), 4)
     : "0";
@@ -80,8 +115,49 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
     ? calculateFundingAmount(hasMargin ? margin : "0", fundingConfig.fundingRate)
     : "0";
 
+  const onSubmit = async () => {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    try {
+      await placeFuturesOrder({
+        pair: displayPair,
+        side,
+        type: orderType,
+        margin,
+        leverage,
+        price: orderType === "limit" ? limitPrice : undefined,
+        stopLoss,
+        takeProfit,
+        clientOrderId: `web-${Date.now()}`,
+      });
+      toast.success(t("futures.order_placed"));
+      setMargin("");
+      setLimitPrice("");
+      setStopLoss("");
+      setTakeProfit("");
+      setOrders(await fetchFuturesOpenOrders());
+    } catch {
+      toast.error(t("futures.order_failed"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onCancel = async (id: string) => {
+    await cancelFuturesOrder(id);
+    setOrders(await fetchFuturesOpenOrders());
+    toast.success(t("futures.order_cancelled"));
+  };
+
+  if (!supportsProduct(marketId, "futures")) {
+    return <ProductUnavailable product="futures" symbol={marketId} pair={displayPair} />;
+  }
+
   return (
-    <div className="flex flex-col bg-background lg:h-[calc(100vh-3.5rem)] lg:flex-row">
+    <div className="flex flex-col bg-background lg:h-[calc(100vh-3.5rem)]">
+      {/* Three trading columns; the booked-order list sits full-width underneath,
+          the same arrangement the spot page uses. */}
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
       {/* Left: Orderbook placeholder */}
       <div className="order-3 flex min-h-48 w-full shrink-0 flex-col gap-4 overflow-y-auto border-t border-border p-4 lg:order-none lg:min-h-0 lg:w-[260px] lg:border-t-0 lg:border-r">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
@@ -230,8 +306,7 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
             placeholder="0.00"
             value={margin}
             onChange={(event) => {
-              const next = event.target.value;
-              if (next === "" || /^\d*\.?\d*$/.test(next)) setMargin(next);
+              if (isDecimalText(event.target.value)) setMargin(event.target.value);
             }}
             aria-invalid={margin !== "" && !hasMargin}
             className="bg-secondary/30"
@@ -250,19 +325,35 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
         </div>
 
         {orderType === "limit" && (
-          <div>
-            <label htmlFor="limit-price" className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t("futures.limit_price")} (USDT)
-            </label>
-            <Input
-              id="limit-price"
-              type="text"
-              inputMode="decimal"
-              placeholder="0.00"
-              className="bg-secondary/30"
-            />
-          </div>
+          <DecimalField
+            id="limit-price"
+            label={`${t("futures.limit_price")} (USDT)`}
+            value={limitPrice}
+            onChange={setLimitPrice}
+            invalidText={t("common.invalid_price")}
+          />
         )}
+
+        {/* v20 Q3 requires Stop Loss and Take Profit. Both are optional triggers,
+            and the server decides when and how they fire. */}
+        <div className="grid grid-cols-2 gap-2">
+          <DecimalField
+            id="stop-loss"
+            label={`${t("common.stop_loss")} (USDT)`}
+            value={stopLoss}
+            onChange={setStopLoss}
+            invalidText={t("common.invalid_price")}
+            optional
+          />
+          <DecimalField
+            id="take-profit"
+            label={`${t("common.take_profit")} (USDT)`}
+            value={takeProfit}
+            onChange={setTakeProfit}
+            invalidText={t("common.invalid_price")}
+            optional
+          />
+        </div>
 
         {/* ── Fee Breakdown ────────────────────────────────── */}
         <div className="space-y-2 rounded-lg border border-border bg-secondary/20 p-3">
@@ -365,7 +456,8 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
 
         {/* Submit */}
         <Button
-          disabled={!hasMargin}
+          onClick={onSubmit}
+          disabled={!canSubmit}
           className={`w-full py-3 font-bold ${
             side === "long"
               ? "bg-success text-success-fg hover:bg-success/90"
@@ -383,6 +475,63 @@ export default function TradeFuturesPairPage({ params }: PageProps) {
           </Link>
           .
         </p>
+      </div>
+      </div>
+
+      {/* Booked orders — v20 Q3 requires the pending order and its price/level to
+          stay visible on the trading screen until it fills or is cancelled. */}
+      <div className="border-t border-border bg-card p-4">
+        <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+          {t("futures.pending_orders")}
+        </h2>
+        {orders.length === 0 ? (
+          <p className="py-3 text-center text-sm text-muted-foreground">{t("futures.no_pending_orders")}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr>
+                  <th className="py-2 font-medium">{t("col.pair")}</th>
+                  <th className="py-2 font-medium">{t("futures.direction")}</th>
+                  <th className="py-2 font-medium">{t("futures.margin")}</th>
+                  <th className="py-2 font-medium">{t("trade.leverage")}</th>
+                  <th className="py-2 font-medium">{t("futures.limit_price")}</th>
+                  <th className="py-2 font-medium">{t("common.triggers")}</th>
+                  <th className="py-2 font-medium" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {orders.map((o) => (
+                  <tr key={o.id}>
+                    <td className="py-2 font-medium">{o.pair}</td>
+                    <td
+                      className={`py-2 capitalize ${
+                        o.side === "long" ? "text-success" : "text-danger"
+                      }`}
+                    >
+                      {o.side === "long" ? t("trade.long") : t("trade.short")}
+                    </td>
+                    <td className="py-2 font-mono">{formatDecimalString(o.margin, 2)}</td>
+                    <td className="py-2 font-mono">{o.leverage}x</td>
+                    <td className="py-2 font-mono">{o.price ? groupDecimalString(o.price) : "—"}</td>
+                    <td className="py-2 font-mono text-xs text-muted-foreground">
+                      {o.stopLoss || o.takeProfit
+                        ? `SL ${o.stopLoss ? groupDecimalString(o.stopLoss) : "—"} / TP ${
+                            o.takeProfit ? groupDecimalString(o.takeProfit) : "—"
+                          }`
+                        : "—"}
+                    </td>
+                    <td className="py-2 text-right">
+                      <Button size="sm" variant="ghost" onClick={() => onCancel(o.id)}>
+                        {t("common.cancel")}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

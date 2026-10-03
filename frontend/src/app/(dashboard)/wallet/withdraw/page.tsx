@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocaleStore } from "@/store/locale-store";
-import { isPositiveDecimal, compareDecimalStrings } from "@/lib/utils/decimal";
+import { compareDecimalStrings, formatDecimalString, isPositiveDecimal } from "@/lib/utils/decimal";
+import { fetchMyKyc, kycRuleForLevel, type MyKyc } from "@/services/kyc.service";
 import { fetchWalletBalances, WalletBalances } from "@/services/wallet.service";
 import {
   requestWithdrawal,
@@ -15,7 +16,7 @@ import {
   WithdrawalStatus,
 } from "@/services/payments.service";
 import toast from "react-hot-toast";
-import { ArrowUpFromLine, Lock, Info } from "lucide-react";
+import { ArrowUpFromLine, Lock, Info, ShieldCheck } from "lucide-react";
 
 const NETWORKS = ["TRC20", "BEP20", "ERC20"];
 
@@ -26,7 +27,13 @@ const STATUS_STYLES: Record<WithdrawalStatus, string> = {
   failed: "bg-danger/10 text-danger border-danger/20",
 };
 
-const EMPTY: WalletBalances = { currency: "USDT", available: "0.00", funding: "0.00", profit: "0.00" };
+const EMPTY: WalletBalances = {
+  currency: "USDT",
+  fundingAsset: "VUSDT",
+  available: "0.00",
+  funding: "0.00",
+  profit: "0.00",
+};
 
 export default function WalletWithdrawPage() {
   const { t } = useLocaleStore();
@@ -38,10 +45,14 @@ export default function WalletWithdrawPage() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [withdrawal, setWithdrawal] = useState<Withdrawal | null>(null);
+  const [kyc, setKyc] = useState<MyKyc | null>(null);
 
   useEffect(() => {
     fetchWalletBalances().then(setBalances);
+    fetchMyKyc().then(setKyc);
   }, []);
+
+  const kycRule = kycRuleForLevel(kyc?.level ?? "none");
 
   const sourceBalance = source === "available" ? balances.available : balances.profit;
 
@@ -127,7 +138,24 @@ export default function WalletWithdrawPage() {
         <Lock className="h-4 w-4 shrink-0 mt-0.5" />
         <span>
           {t("withdraw.funding_locked")}{" "}
-          <span className="font-mono">{balances.funding} {balances.currency}</span>
+          <span className="font-mono">{balances.funding} {balances.fundingAsset}</span>
+        </span>
+      </div>
+
+      <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
+        <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+        <span>
+          {t("withdraw.kyc_ceiling")}{" "}
+          {/* Ceiling shown, not enforced: the confirmed Level-1 limit is a daily
+              aggregate (v20 Q37), and only the server can add up what has
+              already left the account today. */}
+          <span className="font-mono font-semibold text-foreground">
+            {kycRule === null
+              ? t("kyc.not_confirmed")
+              : `$${formatDecimalString(kycRule.cap, 2)}${
+                  kycRule.capPeriod === "day" ? ` / ${t("kyc.per_day")}` : ""
+                }`}
+          </span>
         </span>
       </div>
 

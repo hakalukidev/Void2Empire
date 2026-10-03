@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { groupDecimalString } from "@/lib/utils/decimal";
 import { useLocaleStore } from "@/store/locale-store";
 import { fetchGainersLosers, type GainersLosers as GainersLosersData } from "@/services/markets.service";
 
@@ -47,14 +48,14 @@ export function GainersLosers() {
 
       <ul className="mt-4 divide-y divide-border">
         {rows.map((row) => (
-          <li key={row.pair}>
+          <li key={row.symbol}>
             <Link
-              href={`/trade/futures/${row.pair}`}
+              href={`/trade/futures/${row.symbol}`}
               className="flex items-center justify-between gap-3 py-3 hover:opacity-80"
             >
-              <span className="text-sm font-medium">{row.symbol}</span>
+              <span className="text-sm font-medium">{row.pair}</span>
               <span className="text-right">
-                <span className="block font-mono text-sm font-semibold">{row.price}</span>
+                <span className="block font-mono text-sm font-semibold">{groupDecimalString(row.price)}</span>
                 <span
                   className={cn(
                     "block font-mono text-xs font-medium",

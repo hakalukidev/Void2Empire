@@ -1,6 +1,7 @@
 "use client";
 
 import { AgentBadge } from "@/services/p2p.service";
+import { useLocaleStore } from "@/store/locale-store";
 
 interface AgentBadgeProps {
   badge: AgentBadge;
@@ -8,6 +9,7 @@ interface AgentBadgeProps {
 }
 
 export function AgentBadgeDisplay({ badge, size = "sm" }: AgentBadgeProps) {
+  const { t } = useLocaleStore();
   if (badge === "none") return null;
 
   const isPro = badge === "pro";
@@ -23,7 +25,7 @@ export function AgentBadgeDisplay({ badge, size = "sm" }: AgentBadgeProps) {
       }`}
     >
       <span>{isPro ? "🟢" : "🟡"}</span>
-      {isPro ? "LEVEL PRO" : "LEVEL 1"}
+      {isPro ? t("p2p.badge_pro") : t("p2p.badge_level1")}
     </span>
   );
 }

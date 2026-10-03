@@ -11,12 +11,14 @@ import { loginSchema, type LoginInput } from "@/lib/validators/auth";
 import { loginUser } from "@/lib/api/auth";
 import { safeNextPath } from "@/lib/auth/routes";
 import { useAuthStore } from "@/store/auth-store";
+import { useLocaleStore } from "@/store/locale-store";
 import { useInAuthModal } from "@/components/auth/auth-context";
 import { AuthHeader, Field, IconInput, PasswordInput, SubmitButton } from "@/components/auth/fields";
 
 export function LoginForm() {
   const router = useRouter();
   const inModal = useInAuthModal();
+  const { t } = useLocaleStore();
   const setUser = useAuthStore((state) => state.setUser);
   const {
     register,
@@ -28,40 +30,40 @@ export function LoginForm() {
     try {
       const user = await loginUser(data);
       setUser(user);
-      toast.success(`Welcome back, ${user.fullName.split(" ")[0]}`);
+      toast.success(`${t("auth.welcome_back")}, ${user.fullName.split(" ")[0]}`);
       // Honor ?next= set by the auth guard (proxy.ts).
       const next = new URLSearchParams(window.location.search).get("next");
       router.push(safeNextPath(next));
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
-      toast.error(message ?? "Could not log in");
+      toast.error(message ?? t("auth.login_failed"));
     }
   };
 
   return (
     <div>
-      <AuthHeader title="Welcome back" subtitle="Log in to continue trading on Void2Empire." />
+      <AuthHeader title={t("auth.login_title")} subtitle={t("auth.login_subtitle")} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <Field label="Email" htmlFor="login-email" error={errors.email?.message}>
+        <Field label={t("auth.email")} htmlFor="login-email" error={errors.email?.message}>
           <IconInput
             id="login-email"
             type="email"
             icon={Mail}
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder={t("auth.email_ph")}
             invalid={!!errors.email}
             {...register("email")}
           />
         </Field>
 
         <Field
-          label="Password"
+          label={t("auth.password")}
           htmlFor="login-password"
           error={errors.password?.message}
           aside={
             <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
-              Forgot password?
+              {t("auth.forgot_password")}
             </Link>
           }
         >
@@ -69,7 +71,7 @@ export function LoginForm() {
             id="login-password"
             icon={Lock}
             autoComplete="current-password"
-            placeholder="Enter your password"
+            placeholder={t("auth.password_ph_login")}
             invalid={!!errors.password}
             {...register("password")}
           />
@@ -77,15 +79,15 @@ export function LoginForm() {
 
         <div className="pt-2">
           <SubmitButton pending={isSubmitting}>
-            {isSubmitting ? "Logging in…" : "Log in"}
+            {isSubmitting ? t("auth.login_pending") : t("auth.login_btn")}
           </SubmitButton>
         </div>
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        New to Void2Empire?{" "}
+        {t("auth.new_to")}{" "}
         <Link href="/register" replace={inModal} className="font-medium text-primary hover:underline">
-          Create an account
+          {t("auth.create_account")}
         </Link>
       </p>
     </div>

@@ -50,3 +50,71 @@ export async function fetchPositionsSummary(): Promise<PositionsSummary> {
   // TODO(backend): const { data } = await apiClient.get<PositionsSummary>("/futures/positions/summary"); return data;
   return MOCK_SUMMARY;
 }
+
+// ─── PENDING ORDERS ───────────────────────────────────────────────────────────
+// The client clarification (v20 Q3) requires Market + Limit orders plus Stop
+// Loss / Take Profit, and says a booked order must stay visible on the trading
+// screen with its price. A limit order therefore has somewhere to wait; no
+// futures backend exists yet, so these are in-memory layout samples shaped for
+// POST /futures/orders. The matching engine and the fill price are server-side
+// and DR-002/DR-023 blocked — nothing here simulates them.
+
+export type FuturesOrderStatus = "open" | "filled" | "cancelled";
+
+export interface FuturesOrder {
+  id: string;
+  pair: string;
+  side: "long" | "short";
+  type: "market" | "limit";
+  margin: string;
+  leverage: number;
+  price: string | null; // limit price; null for a market order
+  stopLoss: string | null;
+  takeProfit: string | null;
+  status: FuturesOrderStatus;
+  createdAt: string;
+}
+
+export interface PlaceFuturesOrderInput {
+  pair: string;
+  side: "long" | "short";
+  type: "market" | "limit";
+  margin: string;
+  leverage: number;
+  price?: string;
+  stopLoss?: string;
+  takeProfit?: string;
+  clientOrderId: string;
+}
+
+let MOCK_FUTURES_ORDERS: FuturesOrder[] = [];
+let futuresOrderCounter = 0;
+
+export async function placeFuturesOrder(input: PlaceFuturesOrderInput): Promise<FuturesOrder> {
+  // TODO(backend): POST /futures/orders with an Idempotency-Key.
+  const order: FuturesOrder = {
+    id: `FUT-${++futuresOrderCounter}`,
+    pair: input.pair,
+    side: input.side,
+    type: input.type,
+    margin: input.margin,
+    leverage: input.leverage,
+    price: input.type === "limit" ? input.price ?? null : null,
+    stopLoss: input.stopLoss || null,
+    takeProfit: input.takeProfit || null,
+    status: input.type === "limit" ? "open" : "filled",
+    createdAt: new Date().toISOString(),
+  };
+  if (order.status === "open") MOCK_FUTURES_ORDERS = [order, ...MOCK_FUTURES_ORDERS];
+  return order;
+}
+
+export async function fetchFuturesOpenOrders(): Promise<FuturesOrder[]> {
+  // TODO(backend): GET /futures/orders?status=open
+  return MOCK_FUTURES_ORDERS;
+}
+
+export async function cancelFuturesOrder(id: string): Promise<void> {
+  // TODO(backend): DELETE /futures/orders/{id}
+  MOCK_FUTURES_ORDERS = MOCK_FUTURES_ORDERS.filter((o) => o.id !== id);
+}

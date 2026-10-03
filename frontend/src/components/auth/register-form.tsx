@@ -11,6 +11,9 @@ import { registerSchema, type RegisterInput } from "@/lib/validators/auth";
 import { registerUser } from "@/lib/api/auth";
 import { countries } from "@/config/countries";
 import { useAuthStore } from "@/store/auth-store";
+import { useLocaleStore } from "@/store/locale-store";
+import { DEMO_STARTING_BALANCE } from "@/store/account-store";
+import { formatDecimalString } from "@/lib/utils/decimal";
 import { useInAuthModal } from "@/components/auth/auth-context";
 import { AuthHeader, Field, IconInput, PasswordInput, SubmitButton } from "@/components/auth/fields";
 import { PasswordStrength } from "@/components/auth/password-strength";
@@ -22,6 +25,7 @@ const DEFAULT_COUNTRY_ISO2 = "BD";
 export function RegisterForm() {
   const router = useRouter();
   const inModal = useInAuthModal();
+  const { t, locale } = useLocaleStore();
   const setUser = useAuthStore((state) => state.setUser);
   const {
     register,
@@ -54,48 +58,51 @@ export function RegisterForm() {
         password: data.password,
       });
       setUser(user);
-      toast.success("Account created");
+      toast.success(t("auth.register_success"));
       // Route to verification (REQ-008). The verify page is skippable, so this
       // does not make verification mandatory — that decision is DR-032 blocked.
       router.push(`/verify?email=${encodeURIComponent(data.email)}`);
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
-      toast.error(message ?? "Could not create account");
+      toast.error(message ?? t("auth.register_failed"));
     }
   };
 
   return (
     <div>
       <AuthHeader
-        title="Create your account"
-        subtitle="Start with a $10,000 demo balance. No card required."
+        title={t("auth.register_title")}
+        subtitle={`${t("auth.register_subtitle_before")} $${formatDecimalString(
+          DEMO_STARTING_BALANCE,
+          0
+        )} ${t("auth.register_subtitle_after")}`}
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <Field label="Full name" htmlFor="register-name" error={errors.fullName?.message}>
+        <Field label={t("auth.full_name")} htmlFor="register-name" error={errors.fullName?.message}>
           <IconInput
             id="register-name"
             icon={User}
             autoComplete="name"
-            placeholder="Your full name"
+            placeholder={t("auth.full_name_ph")}
             invalid={!!errors.fullName}
             {...register("fullName")}
           />
         </Field>
 
-        <Field label="Email" htmlFor="register-email" error={errors.email?.message}>
+        <Field label={t("auth.email")} htmlFor="register-email" error={errors.email?.message}>
           <IconInput
             id="register-email"
             type="email"
             icon={Mail}
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder={t("auth.email_ph")}
             invalid={!!errors.email}
             {...register("email")}
           />
         </Field>
 
-        <Field label="Phone" htmlFor="register-phone" error={errors.phone?.message}>
+        <Field label={t("auth.phone")} htmlFor="register-phone" error={errors.phone?.message}>
           <Controller
             name="phone"
             control={control}
@@ -115,11 +122,11 @@ export function RegisterForm() {
           />
         </Field>
 
-        <Field label="Country" htmlFor="register-country" error={errors.country?.message}>
+        <Field label={t("auth.country")} htmlFor="register-country" error={errors.country?.message}>
           <IconInput
             id="register-country"
             autoComplete="country-name"
-            placeholder="Country of residence"
+            placeholder={t("auth.country_ph")}
             leading={
               countryMatch ? <CountryFlag iso2={countryMatch.iso2} /> : <Globe className="h-4 w-4" />
             }
@@ -128,12 +135,16 @@ export function RegisterForm() {
           />
         </Field>
 
-        <Field label="Password" htmlFor="register-password" error={errors.password?.message}>
+        <Field
+          label={t("auth.password")}
+          htmlFor="register-password"
+          error={errors.password?.message}
+        >
           <PasswordInput
             id="register-password"
             icon={Lock}
             autoComplete="new-password"
-            placeholder="Create a strong password"
+            placeholder={t("auth.password_ph_new")}
             invalid={!!errors.password}
             {...register("password")}
           />
@@ -141,14 +152,14 @@ export function RegisterForm() {
         </Field>
 
         <Field
-          label="Confirm password"
+          label={t("auth.confirm_password")}
           htmlFor="register-confirm"
           error={errors.confirmPassword?.message}
           aside={
             passwordsMatch && (
               <span className="flex items-center gap-1 text-xs font-medium text-success">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Matches
+                {t("auth.passwords_match")}
               </span>
             )
           }
@@ -157,7 +168,7 @@ export function RegisterForm() {
             id="register-confirm"
             icon={Lock}
             autoComplete="new-password"
-            placeholder="Repeat your password"
+            placeholder={t("auth.confirm_password_ph")}
             invalid={!!errors.confirmPassword}
             {...register("confirmPassword")}
           />
@@ -165,36 +176,38 @@ export function RegisterForm() {
 
         <div className="pt-2">
           <SubmitButton pending={isSubmitting}>
-            {isSubmitting ? "Creating account…" : "Create account"}
+            {isSubmitting ? t("auth.register_pending") : t("auth.register_btn")}
           </SubmitButton>
         </div>
 
+        {/* The three legal titles are separate links, so the sentence is built
+            here and the terminator follows the locale (t() has no interpolation). */}
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          By creating an account you agree to our{" "}
+          {t("auth.terms_before")}{" "}
           <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-foreground/80 underline-offset-2 hover:underline">
-            Terms
+            {t("auth.terms_terms")}
           </Link>
           ,{" "}
           <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-foreground/80 underline-offset-2 hover:underline">
-            Privacy Policy
+            {t("auth.terms_privacy")}
           </Link>{" "}
-          and{" "}
+          {t("auth.terms_and")}{" "}
           <Link
             href="/risk-disclosure"
             target="_blank"
             rel="noopener noreferrer"
             className="text-foreground/80 underline-offset-2 hover:underline"
           >
-            Risk Disclosure
+            {t("auth.terms_risk")}
           </Link>
-          .
+          {locale === "bn" ? "।" : "."}
         </p>
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("auth.have_account")}{" "}
         <Link href="/login" replace={inModal} className="font-medium text-primary hover:underline">
-          Log in
+          {t("auth.login_btn")}
         </Link>
       </p>
     </div>

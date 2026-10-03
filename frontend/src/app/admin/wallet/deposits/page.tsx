@@ -3,17 +3,21 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SampleBadge } from "@/components/home/sample-badge";
+import { addDecimalStrings, formatDecimalString } from "@/lib/utils/decimal";
 import { ArrowDownCircle, CheckCircle2, XCircle, Clock } from "lucide-react";
 
 type DepositStatus = "pending" | "completed" | "failed" | "on_hold";
 
+// Layout samples — no deposit backend serves these rows. Amounts are decimal
+// STRINGS exactly as the ledger returns them (Sec46 rule #40).
 const MOCK_DEPOSITS = [
-  { id: "DEP-001", user: "Rafiq Ahmed",    email: "rafiq@example.com",   asset: "USDT", amount: 500,  network: "TRC20",   method: "Crypto",       status: "pending"   as DepositStatus, date: "2024-09-21 17:30" },
-  { id: "DEP-002", user: "Sadia Islam",    email: "sadia@example.com",   asset: "BTC",  amount: 0.01, network: "Bitcoin",  method: "Crypto",       status: "completed" as DepositStatus, date: "2024-09-21 16:10" },
-  { id: "DEP-003", user: "Nasrin Akter",   email: "nasrin@example.com",  asset: "USDT", amount: 1000, network: "ERC20",   method: "Crypto",       status: "completed" as DepositStatus, date: "2024-09-21 15:00" },
-  { id: "DEP-004", user: "Tahmina Begum",  email: "tahmina@example.com", asset: "USDT", amount: 250,  network: "TRC20",   method: "SSLCOMMERZ",   status: "pending"   as DepositStatus, date: "2024-09-21 14:20" },
-  { id: "DEP-005", user: "Karim Hossain",  email: "karim@example.com",   asset: "ETH",  amount: 0.5,  network: "ERC20",   method: "Crypto",       status: "on_hold"   as DepositStatus, date: "2024-09-20 11:05" },
-  { id: "DEP-006", user: "Jamal Uddin",    email: "jamal@example.com",   asset: "USDT", amount: 100,  network: "TRC20",   method: "Crypto",       status: "failed"    as DepositStatus, date: "2024-09-20 09:00" },
+  { id: "DEP-001", user: "Rafiq Ahmed",    email: "rafiq@example.com",   asset: "USDT", amount: "500",  network: "TRC20",   method: "Crypto",       status: "pending"   as DepositStatus, date: "2024-09-21 17:30" },
+  { id: "DEP-002", user: "Sadia Islam",    email: "sadia@example.com",   asset: "BTC",  amount: "0.01", network: "Bitcoin",  method: "Crypto",       status: "completed" as DepositStatus, date: "2024-09-21 16:10" },
+  { id: "DEP-003", user: "Nasrin Akter",   email: "nasrin@example.com",  asset: "USDT", amount: "1000", network: "ERC20",   method: "Crypto",       status: "completed" as DepositStatus, date: "2024-09-21 15:00" },
+  { id: "DEP-004", user: "Tahmina Begum",  email: "tahmina@example.com", asset: "USDT", amount: "250",  network: "TRC20",   method: "SSLCOMMERZ",   status: "pending"   as DepositStatus, date: "2024-09-21 14:20" },
+  { id: "DEP-005", user: "Karim Hossain",  email: "karim@example.com",   asset: "ETH",  amount: "0.5",  network: "ERC20",   method: "Crypto",       status: "on_hold"   as DepositStatus, date: "2024-09-20 11:05" },
+  { id: "DEP-006", user: "Jamal Uddin",    email: "jamal@example.com",   asset: "USDT", amount: "100",  network: "TRC20",   method: "Crypto",       status: "failed"    as DepositStatus, date: "2024-09-20 09:00" },
 ];
 
 const STATUS_STYLE: Record<DepositStatus, string> = {
@@ -36,7 +40,9 @@ export default function AdminDepositsPage() {
 
   const filtered = statusFilter === "all" ? deposits : deposits.filter((d) => d.status === statusFilter);
 
-  const totalDeposited = deposits.filter(d => d.status === "completed" && d.asset === "USDT").reduce((sum, d) => sum + d.amount, 0);
+  const totalDeposited = addDecimalStrings(
+    ...deposits.filter((d) => d.status === "completed" && d.asset === "USDT").map((d) => d.amount)
+  );
   const pendingCount = deposits.filter(d => d.status === "pending").length;
 
   const approve = (id: string) => setDeposits(prev => prev.map(d => d.id === id ? { ...d, status: "completed" as DepositStatus } : d));
@@ -47,13 +53,14 @@ export default function AdminDepositsPage() {
       <div className="flex items-center gap-3">
         <ArrowDownCircle className="w-6 h-6 text-success" />
         <h1 className="text-2xl font-bold tracking-tight">Deposits</h1>
+        <SampleBadge className="ml-auto" />
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card className="p-5 bg-card border-border border-l-4 border-l-success">
           <p className="text-xs text-muted-foreground mb-1">Total Deposited (USDT)</p>
-          <p className="text-2xl font-bold text-success">${totalDeposited.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-success">${formatDecimalString(totalDeposited, 2)}</p>
         </Card>
         <Card className="p-5 bg-card border-border border-l-4 border-l-warning">
           <p className="text-xs text-muted-foreground mb-1">Pending Review</p>
