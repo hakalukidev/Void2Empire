@@ -1,20 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { LogOut } from "lucide-react";
 import toast from "react-hot-toast";
 import { logoutUser } from "@/lib/api/auth";
 import { useAuthStore } from "@/store/auth-store";
 import { useLocaleStore } from "@/store/locale-store";
-
-function initials(fullName: string) {
-  return fullName
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]!.toUpperCase())
-    .join("");
-}
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 export function UserMenu() {
   const { t } = useLocaleStore();
@@ -34,23 +27,21 @@ export function UserMenu() {
       // a reload also drops any per-user client state.
       window.location.replace("/login");
     } catch {
-      toast.error("Could not log out");
+      toast.error(t("auth.logout_failed"));
       setPending(false);
     }
   };
 
   return (
     <div className="flex items-center gap-2 border-l border-border pl-2">
-      <span
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
-        aria-hidden="true"
+      <Link
+        href="/profile"
+        aria-label={t("nav.profile")}
+        title={user.fullName}
+        className="rounded-full ring-offset-background transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
-        {initials(user.fullName)}
-      </span>
-      <div className="hidden min-w-0 max-w-40 flex-col leading-tight md:flex">
-        <span className="truncate text-sm font-medium">{user.fullName}</span>
-        <span className="truncate text-xs text-muted-foreground">{user.email}</span>
-      </div>
+        <UserAvatar user={user} className="h-8 w-8 text-xs" />
+      </Link>
       <button
         type="button"
         onClick={onLogout}

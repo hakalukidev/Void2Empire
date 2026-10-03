@@ -12,6 +12,7 @@ import { verifySchema, type VerifyInput } from "@/lib/validators/auth";
 import { verifyEmail, resendVerificationCode } from "@/lib/api/auth";
 import { useAuthStore } from "@/store/auth-store";
 import { useLocaleStore } from "@/store/locale-store";
+import { safeNextPath } from "@/lib/auth/routes";
 import { AuthHeader, Field, SubmitButton, authInputClass } from "@/components/auth/fields";
 import { cn } from "@/lib/utils/cn";
 
@@ -21,7 +22,7 @@ export default function VerifyPage() {
   const router = useRouter();
   const { t, locale } = useLocaleStore();
   const setUser = useAuthStore((state) => state.setUser);
-  // A code was just sent by registration, so resend starts on cooldown.
+  // A code was just sent by registration or login, so resend starts on cooldown.
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
 
   const {
@@ -50,7 +51,7 @@ export default function VerifyPage() {
       const user = await verifyEmail(data);
       setUser(user);
       toast.success(t("auth.verify_success"));
-      router.push("/dashboard");
+      router.push(safeNextPath(new URLSearchParams(window.location.search).get("next")));
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
       toast.error(message ?? t("auth.verify_invalid"));
@@ -121,8 +122,8 @@ export default function VerifyPage() {
             ? `${t("auth.resend_in_before")}${cooldown}${t("auth.resend_in_after")}`
             : t("auth.resend")}
         </button>
-        <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
-          {t("auth.skip_for_now")}
+        <Link href="/login" className="text-muted-foreground hover:text-foreground">
+          {t("auth.back_to_login")}
         </Link>
       </div>
     </div>

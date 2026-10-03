@@ -10,12 +10,12 @@ import toast from "react-hot-toast";
 import { registerSchema, type RegisterInput } from "@/lib/validators/auth";
 import { registerUser } from "@/lib/api/auth";
 import { countries } from "@/config/countries";
-import { useAuthStore } from "@/store/auth-store";
 import { useLocaleStore } from "@/store/locale-store";
 import { DEMO_STARTING_BALANCE } from "@/store/account-store";
 import { formatDecimalString } from "@/lib/utils/decimal";
 import { useInAuthModal } from "@/components/auth/auth-context";
 import { AuthHeader, Field, IconInput, PasswordInput, SubmitButton } from "@/components/auth/fields";
+import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
 import { PasswordStrength } from "@/components/auth/password-strength";
 import { PhoneInput, findCountry } from "@/components/ui/phone-input";
 import { CountryFlag } from "@/components/ui/country-flag";
@@ -26,7 +26,6 @@ export function RegisterForm() {
   const router = useRouter();
   const inModal = useInAuthModal();
   const { t, locale } = useLocaleStore();
-  const setUser = useAuthStore((state) => state.setUser);
   const {
     register,
     control,
@@ -50,17 +49,16 @@ export function RegisterForm() {
 
   const onSubmit = async (data: RegisterInput) => {
     try {
-      const user = await registerUser({
+      await registerUser({
         fullName: data.fullName,
         email: data.email,
         country: data.country,
         phone: data.phone,
         password: data.password,
       });
-      setUser(user);
       toast.success(t("auth.register_success"));
-      // Route to verification (REQ-008). The verify page is skippable, so this
-      // does not make verification mandatory — that decision is DR-032 blocked.
+      // Registration starts no session: verification is mandatory, and the
+      // verify page is what signs the new account in.
       router.push(`/verify?email=${encodeURIComponent(data.email)}`);
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
@@ -77,6 +75,9 @@ export function RegisterForm() {
           0
         )} ${t("auth.register_subtitle_after")}`}
       />
+
+      <GoogleButton labelKey="auth.google_signup" />
+      <AuthDivider />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <Field label={t("auth.full_name")} htmlFor="register-name" error={errors.fullName?.message}>

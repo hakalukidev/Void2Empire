@@ -14,6 +14,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useLocaleStore } from "@/store/locale-store";
 import { useInAuthModal } from "@/components/auth/auth-context";
 import { AuthHeader, Field, IconInput, PasswordInput, SubmitButton } from "@/components/auth/fields";
+import { AuthDivider, GoogleButton, useGoogleErrorToast } from "@/components/auth/google-button";
 
 export function LoginForm() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export function LoginForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
+  useGoogleErrorToast();
 
   const onSubmit = async (data: LoginInput) => {
     try {
@@ -35,6 +37,15 @@ export function LoginForm() {
       const next = new URLSearchParams(window.location.search).get("next");
       router.push(safeNextPath(next));
     } catch (error) {
+      if (isAxiosError(error) && error.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+        // The backend just sent a fresh code; verifying it signs the user in.
+        toast(error.response.data.error);
+        const params = new URLSearchParams({ email: data.email });
+        const next = new URLSearchParams(window.location.search).get("next");
+        if (next) params.set("next", next);
+        router.push(`/verify?${params}`);
+        return;
+      }
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
       toast.error(message ?? t("auth.login_failed"));
     }
@@ -43,6 +54,9 @@ export function LoginForm() {
   return (
     <div>
       <AuthHeader title={t("auth.login_title")} subtitle={t("auth.login_subtitle")} />
+
+      <GoogleButton />
+      <AuthDivider />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <Field label={t("auth.email")} htmlFor="login-email" error={errors.email?.message}>

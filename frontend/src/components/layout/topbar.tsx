@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
@@ -14,7 +15,9 @@ export function Topbar() {
     <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-2 border-b border-border bg-card px-3 sm:gap-4 sm:px-4">
       <div className="flex min-w-0 items-center gap-1">
         <MobileNavButton />
-        <Logo size={24} />
+        <Link href="/" className="shrink-0" aria-label="Void2Empire home">
+          <Logo size={24} />
+        </Link>
       </div>
       <div className="hidden items-center gap-2 text-sm lg:flex">
         <span className="flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-3 py-1">

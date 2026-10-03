@@ -17,6 +17,9 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 )
 
+// userColumns is the column list scanUser reads, in its order.
+const userColumns = `id, full_name, email, password_hash, country, phone, kyc_verified, avatar_url, email_verified_at, created_at, updated_at`
+
 type Repository struct {
 	pool *pgxpool.Pool
 }
@@ -43,16 +46,9 @@ func (r *Repository) CreateUser(ctx context.Context, u *models.User) error {
 	return nil
 }
 
-func (r *Repository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
-	return r.scanUser(r.pool.QueryRow(ctx, `
-		SELECT id, full_name, email, password_hash, country, phone, kyc_verified, created_at, updated_at
-		FROM users WHERE email = $1
-	`, email))
-}
-
 func (r *Repository) FindByID(ctx context.Context, id string) (*models.User, error) {
 	return r.scanUser(r.pool.QueryRow(ctx, `
-		SELECT id, full_name, email, password_hash, country, phone, kyc_verified, created_at, updated_at
+		SELECT `+userColumns+`
 		FROM users WHERE id = $1
 	`, id))
 }
@@ -91,7 +87,7 @@ func (r *Repository) scanUser(row pgx.Row) (*models.User, error) {
 	var u models.User
 	err := row.Scan(
 		&u.ID, &u.FullName, &u.Email, &u.PasswordHash,
-		&u.Country, &u.Phone, &u.KYCVerified, &u.CreatedAt, &u.UpdatedAt,
+		&u.Country, &u.Phone, &u.KYCVerified, &u.AvatarURL, &u.EmailVerifiedAt, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrUserNotFound
@@ -100,4 +96,14 @@ func (r *Repository) scanUser(row pgx.Row) (*models.User, error) {
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (r *Repository) SetPassword(ctx context.Context, userID, passwordHash string) error {
+	_, err := r.pool.Exec(ctx, `UPDATE users SET password_hash = $2, updated_at = now() WHERE id = $1`, userID, passwordHash)
+	return err
+}
+
+func (r *Repository) UpdateFullName(ctx context.Context, userID, fullName string) error {
+	_, err := r.pool.Exec(ctx, `UPDATE users SET full_name = $2, updated_at = now() WHERE id = $1`, userID, fullName)
+	return err
 }

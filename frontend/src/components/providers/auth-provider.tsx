@@ -23,9 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         useAuthStore.getState().setUser(null);
 
         // proxy.ts let us in because the cookie looked unexpired, but the
-        // backend rejected it (bad signature, deleted user). Clear it, or
-        // proxy and /login would bounce between each other.
-        const rejected = isAxiosError(error) && error.response?.status === 401;
+        // backend rejected it (revoked session, bad signature, unverified
+        // email, deleted user). Clear it, or proxy and /login would bounce
+        // between each other.
+        const status = isAxiosError(error) ? error.response?.status : undefined;
+        const rejected = status === 401 || status === 403;
         const path = window.location.pathname;
         if (rejected && isProtectedPath(path)) {
           await logoutUser().catch(() => {});

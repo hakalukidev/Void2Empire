@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { List } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -12,6 +13,11 @@ import { fetchMarkets, MarketRow } from "@/services/markets.service";
 export function MarketsList() {
   const { t } = useLocaleStore();
   const [rows, setRows] = useState<MarketRow[]>([]);
+  // The header search sends people here with `?q=`; match it against the pair and symbol.
+  const query = (useSearchParams().get("q") ?? "").trim().toLowerCase();
+  const visible = query
+    ? rows.filter((row) => `${row.pair} ${row.symbol}`.toLowerCase().includes(query))
+    : rows;
 
   useEffect(() => {
     fetchMarkets().then(setRows);
@@ -25,11 +31,11 @@ export function MarketsList() {
       </div>
 
       <ul className="mt-4 divide-y divide-border">
-        {rows.length === 0 ? (
+        {visible.length === 0 ? (
           <li className="py-8 text-center text-sm text-muted-foreground">{t("markets.no_markets")}</li>
         ) : (
-          rows.map((row) => (
-            <li key={row.symbol}>
+          visible.map((row) => (
+            <li key={row.pair}>
               <Link
                 href={`/trade/futures/${row.symbol}`}
                 className="flex items-center justify-between gap-3 py-3 hover:opacity-80"

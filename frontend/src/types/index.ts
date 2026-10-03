@@ -23,6 +23,9 @@ export interface User {
   country: string;
   phone: string;
   kycLevel: KycLevel;
+  emailVerified: boolean;
+  avatarUrl?: string;
+  hasPassword: boolean;
   createdAt: string;
 }
 
