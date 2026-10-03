@@ -19,6 +19,7 @@ export interface User {
   kycVerified: boolean;
   emailVerified: boolean;
   avatarUrl?: string;
+  hasPassword: boolean;
   createdAt: string;
 }
 

@@ -122,3 +122,59 @@ func (r *Repository) ConsumeCodeAndVerifyEmail(ctx context.Context, codeID, user
 
 	return true, tx.Commit(ctx)
 }
+
+// FindCodeByHash looks a code up by its hash, for tokens that arrive without
+// the user they belong to. It returns nil when there is no such code.
+func (r *Repository) FindCodeByHash(ctx context.Context, codeHash, purpose string) (*verificationCode, error) {
+	var c verificationCode
+	err := r.pool.QueryRow(ctx, `
+		SELECT id, user_id, code_hash, expires_at, attempts, consumed_at, created_at
+		FROM verification_codes
+		WHERE code_hash = $1 AND purpose = $2
+	`, codeHash, purpose).Scan(&c.ID, &c.UserID, &c.CodeHash, &c.ExpiresAt, &c.Attempts, &c.ConsumedAt, &c.CreatedAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+// ConsumeCodeAndSetPassword spends a reset token and stores the new password
+// hash together. It reports false when another request consumed it first.
+func (r *Repository) ConsumeCodeAndSetPassword(ctx context.Context, codeID, userID, passwordHash string) (bool, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(ctx)
+
+	tag, err := tx.Exec(ctx, `
+		UPDATE verification_codes SET consumed_at = now()
+		WHERE id = $1 AND consumed_at IS NULL AND expires_at > now()
+	`, codeID)
+	if err != nil {
+		return false, err
+	}
+	if tag.RowsAffected() == 0 {
+		return false, nil
+	}
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE users
+		SET password_hash = $2, email_verified_at = COALESCE(email_verified_at, now()), updated_at = now()
+		WHERE id = $1
+	`, userID, passwordHash); err != nil {
+		return false, err
+	}
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE sessions SET revoked_at = now(), updated_at = now()
+		WHERE user_id = $1 AND revoked_at IS NULL
+	`, userID); err != nil {
+		return false, err
+	}
+
+	return true, tx.Commit(ctx)
+}

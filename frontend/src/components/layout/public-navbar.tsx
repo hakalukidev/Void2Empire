@@ -3,9 +3,10 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, ChevronDown, Menu, Search, UserCircle2, X } from "lucide-react";
+import { Bell, ChevronDown, Menu, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { useLocaleStore } from "@/store/locale-store";
@@ -68,6 +69,7 @@ export function PublicNavbar() {
   const router = useRouter();
   const { t } = useLocaleStore();
   const isAuthenticated = useAuthStore((state) => state.status === "authenticated");
+  const user = useAuthStore((state) => state.user);
 
   const isActive = (item: NavItem) =>
     item.href === "/"
@@ -153,9 +155,9 @@ export function PublicNavbar() {
           <Link href="/announcements" aria-label={t("nav.announcements")} className={iconButton}>
             <Bell className="h-5 w-5" />
           </Link>
-          {isAuthenticated && (
-            <Link href="/profile" aria-label={t("nav.profile")} className={iconButton}>
-              <UserCircle2 className="h-5 w-5" />
+          {user && (
+            <Link href="/profile" aria-label={t("nav.profile")} title={user.fullName} className={iconButton}>
+              <UserAvatar user={user} className="h-7 w-7 text-[11px]" />
             </Link>
           )}
 

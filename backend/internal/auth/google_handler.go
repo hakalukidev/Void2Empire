@@ -83,7 +83,7 @@ func (h *Handler) GoogleCallback(c echo.Context) error {
 		return h.googleFail(c, "google_failed")
 	}
 
-	_, token, expiresAt, err := h.service.LoginWithGoogle(ctx, profile)
+	_, token, expiresAt, err := h.service.LoginWithGoogle(ctx, profile, clientInfo(c))
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrGoogleEmailUnverified):

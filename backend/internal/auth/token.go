@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var ErrInvalidToken = errors.New("invalid token")
@@ -30,6 +31,9 @@ func (m *TokenManager) Generate(userID string) (string, time.Time, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			// A unique id per token, so two sign-ins in the same second still get
+			// distinct tokens and distinct session rows.
+			ID: uuid.NewString(),
 		},
 	}
 

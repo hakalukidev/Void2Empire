@@ -32,3 +32,16 @@ func TestCodeHashIsKeyed(t *testing.T) {
 		t.Error("hash does not depend on the key")
 	}
 }
+
+func TestNormalizeEmail(t *testing.T) {
+	cases := map[string]string{
+		"Ali@Example.COM":     "ali@example.com",
+		"  user@gmail.com \t": "user@gmail.com",
+		"already@lower.io":    "already@lower.io",
+	}
+	for in, want := range cases {
+		if got := normalizeEmail(in); got != want {
+			t.Errorf("normalizeEmail(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
