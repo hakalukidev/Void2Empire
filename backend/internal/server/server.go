@@ -61,9 +61,6 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	if err := cfg.ValidateAuthSecret(); err != nil {
 		return nil, err
 	}
-	if err := cfg.ValidateMail(); err != nil {
-		return nil, err
-	}
 	if err := cfg.ValidateGoogle(); err != nil {
 		return nil, err
 	}
@@ -87,15 +84,9 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 
 	tokens := auth.NewTokenManager(cfg.JWTSecret, cfg.JWTExpiry)
 	authRepo := auth.NewRepository(pool)
-	// Development without a Resend key prints verification codes to the log;
-	// ValidateMail above keeps production from ever taking that branch.
-	var mailer mail.Sender = mail.Log{}
-	if cfg.ResendAPIKey != "" {
-		mailer = mail.NewResend(cfg.ResendAPIKey, cfg.MailFrom)
-	}
 	// Codes are keyed by the JWT secret, the one server secret there is.
 	// Rotating it voids codes already sent, which the resend button recovers.
-	authService := auth.NewService(authRepo, tokens, mailer, []byte(cfg.JWTSecret))
+	authService := auth.NewService(authRepo, tokens, newMailer(cfg), []byte(cfg.JWTSecret))
 	google := auth.GoogleOptions{FrontendURL: frontendURL(cfg)}
 	if cfg.GoogleEnabled() {
 		google.Client = auth.NewGoogleClient(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURL)
@@ -123,6 +114,22 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	authGroup.GET("/me", authHandler.Me, auth.RequireAuth(tokens, cfg.CookieName, authRepo))
 
 	return e, nil
+}
+
+// newMailer picks how verification codes leave the server. Without a Resend
+// key, development prints them to the log so signup can be tested; production
+// sends nothing rather than log a code, and says so once at boot so a missing
+// key is noticed. Registration still succeeds either way.
+func newMailer(cfg config.Config) mail.Sender {
+	switch {
+	case cfg.ResendAPIKey != "":
+		return mail.NewResend(cfg.ResendAPIKey, cfg.MailFrom)
+	case cfg.Env == "production":
+		log.Print("mail: RESEND_API_KEY is empty; verification emails will not be sent")
+		return mail.Disabled{}
+	default:
+		return mail.Log{}
+	}
 }
 
 // frontendURL is where browser redirects (Google sign-in) land: the first

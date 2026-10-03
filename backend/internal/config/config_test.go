@@ -138,26 +138,6 @@ func TestLoadHasNoJWTDefault(t *testing.T) {
 	}
 }
 
-func TestValidateMail(t *testing.T) {
-	cases := []struct {
-		name    string
-		cfg     Config
-		wantErr bool
-	}{
-		{name: "development without key logs mail", cfg: Config{Env: "development"}},
-		{name: "production with key", cfg: Config{Env: "production", ResendAPIKey: "re_test"}},
-		{name: "production without key", cfg: Config{Env: "production"}, wantErr: true},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if err := tc.cfg.ValidateMail(); (err != nil) != tc.wantErr {
-				t.Fatalf("ValidateMail() error = %v, wantErr %v", err, tc.wantErr)
-			}
-		})
-	}
-}
-
 func TestValidateGoogle(t *testing.T) {
 	cases := []struct {
 		name    string

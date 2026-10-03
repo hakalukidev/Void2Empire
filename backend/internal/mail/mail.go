@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -78,9 +79,19 @@ func (r *Resend) Send(ctx context.Context, msg Message) error {
 	return nil
 }
 
+// ErrNotConfigured is what Disabled returns for every message.
+var ErrNotConfigured = errors.New("email sending is not configured (RESEND_API_KEY is empty)")
+
+// Disabled drops every message with ErrNotConfigured. Production uses it while
+// no provider key is set: callers already treat a failed send as recoverable,
+// and unlike Log it never writes a verification code into the server log.
+type Disabled struct{}
+
+func (Disabled) Send(context.Context, Message) error { return ErrNotConfigured }
+
 // Log prints messages instead of sending them. It exists so development works
-// without a provider account: the OTP shows up in the API's terminal. Config
-// refuses to boot production without a real provider, so it never runs there.
+// without a provider account: the OTP shows up in the API's terminal. It must
+// never run in production, where the log is not a safe place for a code.
 type Log struct{}
 
 func (Log) Send(_ context.Context, msg Message) error {

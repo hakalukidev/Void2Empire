@@ -42,8 +42,8 @@ type Config struct {
 	TrustedProxyCIDRs []*net.IPNet
 
 	// ResendAPIKey sends transactional email (verification codes) through
-	// Resend. Without it, development prints mail to the log instead, and
-	// production refuses to boot (ValidateMail).
+	// Resend. Without it, development prints mail to the log instead and
+	// production sends nothing (server.New picks the sender).
 	ResendAPIKey string
 
 	// MailFrom is the sender on every outgoing email. Resend only accepts an
@@ -114,15 +114,6 @@ func (c Config) ValidateAuthSecret() error {
 	}
 	if len(c.JWTSecret) < minJWTSecretBytes {
 		return fmt.Errorf("JWT_SECRET must be at least %d bytes, got %d; generate one with `openssl rand -base64 48`", minJWTSecretBytes, len(c.JWTSecret))
-	}
-	return nil
-}
-
-// ValidateMail rejects a production boot that could not deliver verification
-// codes. Development may run without a key; mail is logged there instead.
-func (c Config) ValidateMail() error {
-	if c.Env == "production" && c.ResendAPIKey == "" {
-		return fmt.Errorf("RESEND_API_KEY is not set; production cannot send verification codes without it")
 	}
 	return nil
 }
