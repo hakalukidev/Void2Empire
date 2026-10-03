@@ -99,7 +99,7 @@ func (s *Service) sendEmailCode(ctx context.Context, user *models.User) error {
 // ResendEmailCode answers success for an unknown or already verified email
 // without sending anything, so the endpoint cannot be used to probe accounts.
 func (s *Service) ResendEmailCode(ctx context.Context, email string) error {
-	user, err := s.repo.FindByEmail(ctx, email)
+	user, err := s.repo.FindByEmailFold(ctx, email)
 	if errors.Is(err, ErrUserNotFound) {
 		return nil
 	}
@@ -112,8 +112,23 @@ func (s *Service) ResendEmailCode(ctx context.Context, email string) error {
 	return s.sendEmailCode(ctx, user)
 }
 
-func (s *Service) VerifyEmail(ctx context.Context, email, code string) (*models.User, error) {
-	user, err := s.repo.FindByEmail(ctx, email)
+// VerifyEmail checks a code and, on success, starts the account's session. A
+// code is only ever issued to an unverified account, after registration or a
+// correct password, so this cannot be used to sign into a verified one.
+func (s *Service) VerifyEmail(ctx context.Context, email, code string, client ClientInfo) (*models.User, string, time.Time, error) {
+	user, err := s.verifyEmailCode(ctx, email, code)
+	if err != nil {
+		return nil, "", time.Time{}, err
+	}
+	token, expiresAt, err := s.issueSession(ctx, user.ID, client)
+	if err != nil {
+		return nil, "", time.Time{}, err
+	}
+	return user, token, expiresAt, nil
+}
+
+func (s *Service) verifyEmailCode(ctx context.Context, email, code string) (*models.User, error) {
+	user, err := s.repo.FindByEmailFold(ctx, email)
 	if errors.Is(err, ErrUserNotFound) {
 		return nil, ErrInvalidCode
 	}

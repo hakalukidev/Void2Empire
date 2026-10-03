@@ -23,7 +23,7 @@ var (
 // linked to the Google id; else an account with the same email, which gets
 // linked; else a new account. Linking by email is safe only because Google has
 // verified the address, so an unverified one is refused outright.
-func (s *Service) LoginWithGoogle(ctx context.Context, p *GoogleProfile) (*models.User, string, time.Time, error) {
+func (s *Service) LoginWithGoogle(ctx context.Context, p *GoogleProfile, client ClientInfo) (*models.User, string, time.Time, error) {
 	if !p.EmailVerified {
 		return nil, "", time.Time{}, ErrGoogleEmailUnverified
 	}
@@ -39,7 +39,7 @@ func (s *Service) LoginWithGoogle(ctx context.Context, p *GoogleProfile) (*model
 		user.AvatarURL = &p.Picture
 	}
 
-	token, expiresAt, err := s.tokens.Generate(user.ID)
+	token, expiresAt, err := s.issueSession(ctx, user.ID, client)
 	if err != nil {
 		return nil, "", time.Time{}, err
 	}
@@ -70,7 +70,7 @@ func (s *Service) googleUser(ctx context.Context, p *GoogleProfile) (*models.Use
 		return nil, err
 	}
 
-	user = &models.User{ID: uuid.NewString(), FullName: googleDisplayName(p), Email: p.Email}
+	user = &models.User{ID: uuid.NewString(), FullName: googleDisplayName(p), Email: normalizeEmail(p.Email)}
 	if p.Picture != "" {
 		user.AvatarURL = &p.Picture
 	}

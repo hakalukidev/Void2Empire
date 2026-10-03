@@ -46,13 +46,6 @@ func (r *Repository) CreateUser(ctx context.Context, u *models.User) error {
 	return nil
 }
 
-func (r *Repository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
-	return r.scanUser(r.pool.QueryRow(ctx, `
-		SELECT `+userColumns+`
-		FROM users WHERE email = $1
-	`, email))
-}
-
 func (r *Repository) FindByID(ctx context.Context, id string) (*models.User, error) {
 	return r.scanUser(r.pool.QueryRow(ctx, `
 		SELECT `+userColumns+`
@@ -103,4 +96,14 @@ func (r *Repository) scanUser(row pgx.Row) (*models.User, error) {
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (r *Repository) SetPassword(ctx context.Context, userID, passwordHash string) error {
+	_, err := r.pool.Exec(ctx, `UPDATE users SET password_hash = $2, updated_at = now() WHERE id = $1`, userID, passwordHash)
+	return err
+}
+
+func (r *Repository) UpdateFullName(ctx context.Context, userID, fullName string) error {
+	_, err := r.pool.Exec(ctx, `UPDATE users SET full_name = $2, updated_at = now() WHERE id = $1`, userID, fullName)
+	return err
 }

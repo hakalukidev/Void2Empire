@@ -12,6 +12,15 @@ export async function loginUser(input: LoginInput) {
   return data;
 }
 
+export async function updateProfile(input: { fullName: string }) {
+  const { data } = await apiClient.patch<User>("/auth/me", input);
+  return data;
+}
+
+export async function changePassword(input: { currentPassword: string; newPassword: string }) {
+  await apiClient.post("/auth/password/change", input);
+}
+
 export async function logoutUser() {
   await apiClient.post("/auth/logout");
 }

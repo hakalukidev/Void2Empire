@@ -31,5 +31,25 @@ type UserResponse struct {
 	KYCVerified   bool   `json:"kycVerified"`
 	EmailVerified bool   `json:"emailVerified"`
 	AvatarURL     string `json:"avatarUrl,omitempty"`
-	CreatedAt     string `json:"createdAt"`
+	// HasPassword is false for an account created through Google.
+	HasPassword bool   `json:"hasPassword"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type ResetPasswordRequest struct {
+	Token    string `json:"token" validate:"required"`
+	Password string `json:"password" validate:"required,min=8"`
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword"`
+	NewPassword     string `json:"newPassword" validate:"required,min=8"`
+}
+
+type UpdateProfileRequest struct {
+	FullName string `json:"fullName" validate:"required,max=100"`
 }

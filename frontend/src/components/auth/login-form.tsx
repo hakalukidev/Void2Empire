@@ -35,6 +35,15 @@ export function LoginForm() {
       const next = new URLSearchParams(window.location.search).get("next");
       router.push(safeNextPath(next));
     } catch (error) {
+      if (isAxiosError(error) && error.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+        // The backend just sent a fresh code; verifying it signs the user in.
+        toast(error.response.data.error);
+        const params = new URLSearchParams({ email: data.email });
+        const next = new URLSearchParams(window.location.search).get("next");
+        if (next) params.set("next", next);
+        router.push(`/verify?${params}`);
+        return;
+      }
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
       toast.error(message ?? "Could not log in");
     }

@@ -1,12 +1,126 @@
 "use client";
 
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
+import Link from "next/link";
+import toast from "react-hot-toast";
+import { ShieldCheck, User, ShieldAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { PasswordStrength } from "@/components/auth/password-strength";
+import { changePassword, updateProfile } from "@/lib/api/auth";
+import {
+  changePasswordSchema,
+  profileSchema,
+  type ChangePasswordInput,
+  type ProfileInput,
+} from "@/lib/validators/auth";
 import { useAuthStore } from "@/store/auth-store";
 import { useLocaleStore } from "@/store/locale-store";
-import { ShieldCheck, User, ShieldAlert } from "lucide-react";
+import type { User as AuthUser } from "@/types";
+
+function apiError(error: unknown, fallback: string) {
+  return (isAxiosError(error) ? error.response?.data?.error : undefined) ?? fallback;
+}
+
+function FieldError({ message }: { message?: string }) {
+  return message ? <p className="text-xs text-destructive">{message}</p> : null;
+}
+
+const labelClass = "text-sm font-medium text-muted-foreground";
+
+function PersonalInfoForm({ user }: { user: AuthUser }) {
+  const { t } = useLocaleStore();
+  const setUser = useAuthStore((state) => state.setUser);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<ProfileInput>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: { fullName: user.fullName },
+  });
+
+  const onSubmit = async (data: ProfileInput) => {
+    try {
+      const updated = await updateProfile({ fullName: data.fullName.trim() });
+      setUser(updated);
+      reset({ fullName: updated.fullName });
+      toast.success(t("profile.updated"));
+    } catch (error) {
+      toast.error(apiError(error, "Could not update profile"));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label htmlFor="profile-name" className={labelClass}>{t("profile.name")}</label>
+          <Input id="profile-name" autoComplete="name" {...register("fullName")} />
+          <FieldError message={errors.fullName?.message} />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="profile-email" className={labelClass}>{t("profile.email")}</label>
+          <Input id="profile-email" value={user.email} readOnly className="bg-secondary/30 text-muted-foreground" />
+        </div>
+      </div>
+      <Button type="submit" disabled={isSubmitting || !isDirty}>
+        {isSubmitting ? t("profile.saving") : t("profile.update")}
+      </Button>
+    </form>
+  );
+}
+
+function ChangePasswordForm() {
+  const { t } = useLocaleStore();
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ChangePasswordInput>({ resolver: zodResolver(changePasswordSchema) });
+  const newPassword = useWatch({ control, name: "newPassword" });
+
+  const onSubmit = async (data: ChangePasswordInput) => {
+    try {
+      await changePassword({ currentPassword: data.currentPassword, newPassword: data.newPassword });
+      reset({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      toast.success(t("profile.password_changed"));
+    } catch (error) {
+      toast.error(apiError(error, "Could not change password"));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <div className="space-y-2">
+        <label htmlFor="current-password" className={labelClass}>{t("profile.current_password")}</label>
+        <Input id="current-password" type="password" autoComplete="current-password" placeholder="••••••••" {...register("currentPassword")} />
+        <FieldError message={errors.currentPassword?.message} />
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="new-password" className={labelClass}>{t("profile.new_password")}</label>
+        <Input id="new-password" type="password" autoComplete="new-password" placeholder="••••••••" {...register("newPassword")} />
+        <PasswordStrength password={newPassword ?? ""} />
+        <FieldError message={errors.newPassword?.message} />
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="confirm-password" className={labelClass}>{t("profile.confirm_password")}</label>
+        <Input id="confirm-password" type="password" autoComplete="new-password" placeholder="••••••••" {...register("confirmPassword")} />
+        <FieldError message={errors.confirmPassword?.message} />
+      </div>
+      <Button type="submit" variant="secondary" disabled={isSubmitting}>
+        {isSubmitting ? t("profile.saving") : t("profile.change_password")}
+      </Button>
+    </form>
+  );
+}
 
 export default function ProfilePage() {
   const { t } = useLocaleStore();
@@ -34,17 +148,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground">{t("profile.name")}</label>
-                  <Input key={user?.id} defaultValue={user?.fullName ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground">{t("profile.email")}</label>
-                  <Input key={user?.id} value={user?.email ?? ""} readOnly className="bg-secondary/30 text-muted-foreground" />
-                </div>
-              </div>
-              <Button>{t("profile.update")}</Button>
+              {user && <PersonalInfoForm key={user.id} user={user} />}
             </div>
           </Card>
 
@@ -54,17 +158,16 @@ export default function ProfilePage() {
               <h2 className="text-lg font-semibold">{t("profile.security")}</h2>
             </div>
             
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">{t("profile.current_password")}</label>
-                <Input type="password" placeholder="••••••••" />
+            {user?.hasPassword === false ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">{t("profile.no_password")}</p>
+                <Link href="/forgot-password">
+                  <Button type="button" variant="secondary">{t("profile.set_password")}</Button>
+                </Link>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">{t("profile.new_password")}</label>
-                <Input type="password" placeholder="••••••••" />
-              </div>
-              <Button variant="secondary">{t("profile.change_password")}</Button>
-            </div>
+            ) : (
+              <ChangePasswordForm />
+            )}
           </Card>
         </div>
 

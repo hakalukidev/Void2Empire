@@ -10,7 +10,6 @@ import toast from "react-hot-toast";
 import { registerSchema, type RegisterInput } from "@/lib/validators/auth";
 import { registerUser } from "@/lib/api/auth";
 import { countries } from "@/config/countries";
-import { useAuthStore } from "@/store/auth-store";
 import { useInAuthModal } from "@/components/auth/auth-context";
 import { AuthHeader, Field, IconInput, PasswordInput, SubmitButton } from "@/components/auth/fields";
 import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
@@ -23,7 +22,6 @@ const DEFAULT_COUNTRY_ISO2 = "BD";
 export function RegisterForm() {
   const router = useRouter();
   const inModal = useInAuthModal();
-  const setUser = useAuthStore((state) => state.setUser);
   const {
     register,
     control,
@@ -47,17 +45,16 @@ export function RegisterForm() {
 
   const onSubmit = async (data: RegisterInput) => {
     try {
-      const user = await registerUser({
+      await registerUser({
         fullName: data.fullName,
         email: data.email,
         country: data.country,
         phone: data.phone,
         password: data.password,
       });
-      setUser(user);
-      toast.success("Account created");
-      // Route to verification (REQ-008). The verify page is skippable, so this
-      // does not make verification mandatory — that decision is DR-032 blocked.
+      toast.success("Account created. Check your email for the code.");
+      // Registration starts no session: verification is mandatory, and the
+      // verify page is what signs the new account in.
       router.push(`/verify?email=${encodeURIComponent(data.email)}`);
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;

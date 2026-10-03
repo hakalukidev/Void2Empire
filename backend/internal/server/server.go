@@ -86,7 +86,7 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	authRepo := auth.NewRepository(pool)
 	// Codes are keyed by the JWT secret, the one server secret there is.
 	// Rotating it voids codes already sent, which the resend button recovers.
-	authService := auth.NewService(authRepo, tokens, newMailer(cfg), []byte(cfg.JWTSecret))
+	authService := auth.NewService(authRepo, tokens, newMailer(cfg), []byte(cfg.JWTSecret), frontendURL(cfg))
 	google := auth.GoogleOptions{FrontendURL: frontendURL(cfg)}
 	if cfg.GoogleEnabled() {
 		google.Client = auth.NewGoogleClient(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURL)
@@ -111,7 +111,13 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	authGroup.POST("/logout", authHandler.Logout)
 	authGroup.GET("/google", authHandler.GoogleStart, credentialLimiter)
 	authGroup.GET("/google/callback", authHandler.GoogleCallback, credentialLimiter)
-	authGroup.GET("/me", authHandler.Me, auth.RequireAuth(tokens, cfg.CookieName, authRepo))
+	authGroup.POST("/password/forgot", authHandler.ForgotPassword, credentialLimiter)
+	authGroup.POST("/password/reset", authHandler.ResetPassword, credentialLimiter)
+
+	requireAuth := auth.RequireAuth(tokens, cfg.CookieName, authRepo)
+	authGroup.GET("/me", authHandler.Me, requireAuth)
+	authGroup.PATCH("/me", authHandler.UpdateProfile, requireAuth)
+	authGroup.POST("/password/change", authHandler.ChangePassword, requireAuth, credentialLimiter)
 
 	return e, nil
 }

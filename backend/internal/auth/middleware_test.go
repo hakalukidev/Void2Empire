@@ -15,13 +15,31 @@ import (
 
 const middlewareSecret = "middleware-test-signing-key-0000000000000000"
 
-type stubRoles struct {
-	role rbac.Role
-	err  error
+// stubStore answers role lookups and knows the sessions in live, keyed by
+// token hash. A token missing from live is a revoked or never-issued session.
+type stubStore struct {
+	role       rbac.Role
+	err        error
+	live       map[string]*Session
+	sessionErr error
 }
 
-func (s stubRoles) RoleForUser(context.Context, string) (rbac.Role, error) {
+func (s stubStore) RoleForUser(context.Context, string) (rbac.Role, error) {
 	return s.role, s.err
+}
+
+func (s stubStore) SessionForToken(_ context.Context, hash string) (*Session, error) {
+	if s.sessionErr != nil {
+		return nil, s.sessionErr
+	}
+	if session, ok := s.live[hash]; ok {
+		return session, nil
+	}
+	return nil, ErrSessionNotFound
+}
+
+func liveSession(token, userID string, verified bool) map[string]*Session {
+	return map[string]*Session{tokenHash(token): {ID: "session-1", UserID: userID, EmailVerified: verified}}
 }
 
 // TestRequireAuth pins what the middleware puts on the context, because
@@ -38,7 +56,7 @@ func TestRequireAuth(t *testing.T) {
 	cases := []struct {
 		name       string
 		cookie     string
-		roles      RoleResolver
+		store      stubStore
 		wantStatus int
 		wantUser   any
 		wantRole   any
@@ -46,7 +64,7 @@ func TestRequireAuth(t *testing.T) {
 		{
 			name:       "valid cookie resolves the caller's role",
 			cookie:     token,
-			roles:      stubRoles{role: rbac.RoleAdmin},
+			store:      stubStore{role: rbac.RoleAdmin, live: liveSession(token, "user-1", true)},
 			wantStatus: http.StatusOK,
 			wantUser:   "user-1",
 			wantRole:   rbac.RoleAdmin,
@@ -54,10 +72,34 @@ func TestRequireAuth(t *testing.T) {
 		{
 			name:       "failed lookup falls back to ordinary user, not the resolved role",
 			cookie:     token,
-			roles:      stubRoles{role: rbac.RoleSuperAdmin, err: errors.New("connection reset")},
+			store:      stubStore{role: rbac.RoleSuperAdmin, err: errors.New("connection reset"), live: liveSession(token, "user-1", true)},
 			wantStatus: http.StatusOK,
 			wantUser:   "user-1",
 			wantRole:   rbac.RoleUser,
+		},
+		{
+			name:       "revoked or unknown session is rejected despite a valid signature",
+			cookie:     token,
+			store:      stubStore{role: rbac.RoleAdmin},
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "session of another user is rejected",
+			cookie:     token,
+			store:      stubStore{role: rbac.RoleAdmin, live: liveSession(token, "user-2", true)},
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "unverified email is refused",
+			cookie:     token,
+			store:      stubStore{role: rbac.RoleUser, live: liveSession(token, "user-1", false)},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name:       "failed session lookup fails closed",
+			cookie:     token,
+			store:      stubStore{role: rbac.RoleUser, sessionErr: errors.New("connection reset")},
+			wantStatus: http.StatusServiceUnavailable,
 		},
 		{
 			name:       "no cookie",
@@ -91,7 +133,7 @@ func TestRequireAuth(t *testing.T) {
 				gotUser = c.Get(ContextUserIDKey)
 				gotRole = c.Get(ContextRoleKey)
 				return c.NoContent(http.StatusOK)
-			}, RequireAuth(tokens, "access_token", tc.roles))
+			}, RequireAuth(tokens, "access_token", tc.store))
 
 			req := httptest.NewRequest(http.MethodGet, "/protected", nil)
 			if tc.cookie != "" {
@@ -125,7 +167,7 @@ func TestRequireAuthRejectsExpiredToken(t *testing.T) {
 	e := echo.New()
 	e.GET("/protected", func(c echo.Context) error {
 		return c.NoContent(http.StatusOK)
-	}, RequireAuth(NewTokenManager(middlewareSecret, time.Hour), "access_token", stubRoles{role: rbac.RoleUser}))
+	}, RequireAuth(NewTokenManager(middlewareSecret, time.Hour), "access_token", stubStore{role: rbac.RoleUser, live: liveSession(token, "user-1", true)}))
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
 	req.AddCookie(&http.Cookie{Name: "access_token", Value: token})

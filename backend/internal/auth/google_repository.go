@@ -13,9 +13,9 @@ func (r *Repository) FindByGoogleSub(ctx context.Context, sub string) (*models.U
 	return r.scanUser(r.pool.QueryRow(ctx, `SELECT `+userColumns+` FROM users WHERE google_sub = $1`, sub))
 }
 
-// FindByEmailFold matches email case-insensitively. Google reports addresses
-// lowercased while a password signup keeps whatever case was typed, and the two
-// must still resolve to one account.
+// FindByEmailFold matches email case-insensitively, as the unique index on
+// lower(email) (migration 0013) defines an address. Every lookup by an email
+// someone typed goes through here.
 func (r *Repository) FindByEmailFold(ctx context.Context, email string) (*models.User, error) {
 	return r.scanUser(r.pool.QueryRow(ctx, `
 		SELECT `+userColumns+` FROM users WHERE lower(email) = lower($1)

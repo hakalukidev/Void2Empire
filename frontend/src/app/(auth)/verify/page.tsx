@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { verifySchema, type VerifyInput } from "@/lib/validators/auth";
 import { verifyEmail, resendVerificationCode } from "@/lib/api/auth";
 import { useAuthStore } from "@/store/auth-store";
+import { safeNextPath } from "@/lib/auth/routes";
 import { AuthHeader, Field, SubmitButton, authInputClass } from "@/components/auth/fields";
 import { cn } from "@/lib/utils/cn";
 
@@ -19,7 +20,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
 export default function VerifyPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
-  // A code was just sent by registration, so resend starts on cooldown.
+  // A code was just sent by registration or login, so resend starts on cooldown.
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
 
   const {
@@ -48,7 +49,7 @@ export default function VerifyPage() {
       const user = await verifyEmail(data);
       setUser(user);
       toast.success("Email verified");
-      router.push("/dashboard");
+      router.push(safeNextPath(new URLSearchParams(window.location.search).get("next")));
     } catch (error) {
       const message = isAxiosError(error) ? error.response?.data?.error : undefined;
       toast.error(message ?? "Invalid or expired code");
@@ -114,8 +115,8 @@ export default function VerifyPage() {
         >
           {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
         </button>
-        <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
-          Skip for now
+        <Link href="/login" className="text-muted-foreground hover:text-foreground">
+          Back to login
         </Link>
       </div>
     </div>
