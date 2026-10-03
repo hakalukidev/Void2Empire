@@ -48,6 +48,7 @@ type GoogleProfile struct {
 	Email         string
 	EmailVerified bool
 	Name          string
+	Picture       string
 }
 
 // randomToken returns n random bytes, URL-safe encoded. It serves as both the
@@ -142,6 +143,7 @@ func (g *GoogleClient) profileFromIDToken(idToken string, now time.Time) (*Googl
 		Email         string `json:"email"`
 		EmailVerified bool   `json:"email_verified"`
 		Name          string `json:"name"`
+		Picture       string `json:"picture"`
 	}
 	if err := json.Unmarshal(payload, &claims); err != nil {
 		return nil, fmt.Errorf("%w: unreadable id_token claims", ErrGoogleToken)
@@ -163,5 +165,6 @@ func (g *GoogleClient) profileFromIDToken(idToken string, now time.Time) (*Googl
 		Email:         claims.Email,
 		EmailVerified: claims.EmailVerified,
 		Name:          claims.Name,
+		Picture:       claims.Picture,
 	}, nil
 }

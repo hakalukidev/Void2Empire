@@ -8,6 +8,7 @@ export interface User {
   phone: string;
   kycVerified: boolean;
   emailVerified: boolean;
+  avatarUrl?: string;
   createdAt: string;
 }
 

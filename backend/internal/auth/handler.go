@@ -172,6 +172,14 @@ func toUserResponse(u *models.User) UserResponse {
 		Phone:         u.Phone,
 		KYCVerified:   u.KYCVerified,
 		EmailVerified: u.EmailVerifiedAt != nil,
+		AvatarURL:     deref(u.AvatarURL),
 		CreatedAt:     u.CreatedAt.Format(time.RFC3339),
 	}
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

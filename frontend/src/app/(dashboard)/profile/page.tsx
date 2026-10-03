@@ -3,11 +3,14 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { useAuthStore } from "@/store/auth-store";
 import { useLocaleStore } from "@/store/locale-store";
 import { ShieldCheck, User, ShieldAlert } from "lucide-react";
 
 export default function ProfilePage() {
   const { t } = useLocaleStore();
+  const user = useAuthStore((state) => state.user);
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
@@ -22,14 +25,23 @@ export default function ProfilePage() {
             </div>
             
             <div className="space-y-4">
+              {user && (
+                <div className="flex items-center gap-4">
+                  <UserAvatar user={user} className="h-16 w-16 text-xl" />
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{user.fullName}</p>
+                    <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+              )}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-muted-foreground">{t("profile.name")}</label>
-                  <Input defaultValue="Demo User" />
+                  <Input key={user?.id} defaultValue={user?.fullName ?? ""} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-muted-foreground">{t("profile.email")}</label>
-                  <Input defaultValue="demo@void2empire.com" readOnly className="bg-secondary/30 text-muted-foreground" />
+                  <Input key={user?.id} value={user?.email ?? ""} readOnly className="bg-secondary/30 text-muted-foreground" />
                 </div>
               </div>
               <Button>{t("profile.update")}</Button>

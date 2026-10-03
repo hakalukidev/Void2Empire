@@ -18,7 +18,7 @@ var (
 )
 
 // userColumns is the column list scanUser reads, in its order.
-const userColumns = `id, full_name, email, password_hash, country, phone, kyc_verified, email_verified_at, created_at, updated_at`
+const userColumns = `id, full_name, email, password_hash, country, phone, kyc_verified, avatar_url, email_verified_at, created_at, updated_at`
 
 type Repository struct {
 	pool *pgxpool.Pool
@@ -94,7 +94,7 @@ func (r *Repository) scanUser(row pgx.Row) (*models.User, error) {
 	var u models.User
 	err := row.Scan(
 		&u.ID, &u.FullName, &u.Email, &u.PasswordHash,
-		&u.Country, &u.Phone, &u.KYCVerified, &u.EmailVerifiedAt, &u.CreatedAt, &u.UpdatedAt,
+		&u.Country, &u.Phone, &u.KYCVerified, &u.AvatarURL, &u.EmailVerifiedAt, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrUserNotFound

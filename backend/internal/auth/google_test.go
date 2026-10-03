@@ -28,6 +28,7 @@ func validClaims(now time.Time) map[string]any {
 	return map[string]any{
 		"iss": "https://accounts.google.com", "aud": "client-id", "exp": now.Add(time.Hour).Unix(),
 		"sub": "1234", "email": "user@gmail.com", "email_verified": true, "name": "Test User",
+		"picture": "https://lh3.googleusercontent.com/a/photo",
 	}
 }
 
@@ -39,7 +40,8 @@ func TestProfileFromIDToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("valid token: %v", err)
 	}
-	if p.Subject != "1234" || p.Email != "user@gmail.com" || !p.EmailVerified || p.Name != "Test User" {
+	if p.Subject != "1234" || p.Email != "user@gmail.com" || !p.EmailVerified || p.Name != "Test User" ||
+		p.Picture != "https://lh3.googleusercontent.com/a/photo" {
 		t.Errorf("profile = %+v", p)
 	}
 

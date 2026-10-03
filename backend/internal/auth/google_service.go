@@ -32,6 +32,12 @@ func (s *Service) LoginWithGoogle(ctx context.Context, p *GoogleProfile) (*model
 	if err != nil {
 		return nil, "", time.Time{}, err
 	}
+	if p.Picture != "" && (user.AvatarURL == nil || *user.AvatarURL != p.Picture) {
+		if err := s.repo.SetAvatar(ctx, user.ID, p.Picture); err != nil {
+			return nil, "", time.Time{}, err
+		}
+		user.AvatarURL = &p.Picture
+	}
 
 	token, expiresAt, err := s.tokens.Generate(user.ID)
 	if err != nil {
@@ -65,6 +71,9 @@ func (s *Service) googleUser(ctx context.Context, p *GoogleProfile) (*models.Use
 	}
 
 	user = &models.User{ID: uuid.NewString(), FullName: googleDisplayName(p), Email: p.Email}
+	if p.Picture != "" {
+		user.AvatarURL = &p.Picture
+	}
 	if err := s.repo.CreateGoogleUser(ctx, user, p.Subject); err != nil {
 		return nil, err
 	}

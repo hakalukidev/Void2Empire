@@ -30,5 +30,6 @@ type UserResponse struct {
 	Phone         string `json:"phone"`
 	KYCVerified   bool   `json:"kycVerified"`
 	EmailVerified bool   `json:"emailVerified"`
+	AvatarURL     string `json:"avatarUrl,omitempty"`
 	CreatedAt     string `json:"createdAt"`
 }
