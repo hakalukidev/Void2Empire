@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { useNavStore } from "@/store/nav-store";
 
@@ -56,7 +57,9 @@ export function MobileDrawer({ children }: { children: React.ReactNode }) {
         }`}
       >
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-          <Logo size={24} />
+          <Link href="/" onClick={() => setOpen(false)} aria-label="Void2Empire home">
+            <Logo size={24} />
+          </Link>
           <button
             type="button"
             onClick={() => setOpen(false)}
