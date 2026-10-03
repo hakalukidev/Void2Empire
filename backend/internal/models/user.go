@@ -10,6 +10,8 @@ type User struct {
 	Country      string `json:"country"`
 	Phone        string `json:"phone"`
 	KYCVerified  bool   `json:"kycVerified"`
+	// AvatarURL is the profile picture Google reported, or nil.
+	AvatarURL *string `json:"avatarUrl"`
 	// EmailVerifiedAt is nil until the user enters a valid verification code.
 	EmailVerifiedAt *time.Time `json:"emailVerifiedAt"`
 	CreatedAt       time.Time  `json:"createdAt"`
