@@ -21,10 +21,11 @@ type CookieOptions struct {
 type Handler struct {
 	service *Service
 	cookie  CookieOptions
+	google  GoogleOptions
 }
 
-func NewHandler(service *Service, cookie CookieOptions) *Handler {
-	return &Handler{service: service, cookie: cookie}
+func NewHandler(service *Service, cookie CookieOptions, google GoogleOptions) *Handler {
+	return &Handler{service: service, cookie: cookie, google: google}
 }
 
 func (h *Handler) Register(c echo.Context) error {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -60,7 +61,7 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	if err := cfg.ValidateAuthSecret(); err != nil {
 		return nil, err
 	}
-	if err := cfg.ValidateMail(); err != nil {
+	if err := cfg.ValidateGoogle(); err != nil {
 		return nil, err
 	}
 
@@ -83,20 +84,18 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 
 	tokens := auth.NewTokenManager(cfg.JWTSecret, cfg.JWTExpiry)
 	authRepo := auth.NewRepository(pool)
-	// Development without a Resend key prints verification codes to the log;
-	// ValidateMail above keeps production from ever taking that branch.
-	var mailer mail.Sender = mail.Log{}
-	if cfg.ResendAPIKey != "" {
-		mailer = mail.NewResend(cfg.ResendAPIKey, cfg.MailFrom)
-	}
 	// Codes are keyed by the JWT secret, the one server secret there is.
 	// Rotating it voids codes already sent, which the resend button recovers.
-	authService := auth.NewService(authRepo, tokens, mailer, []byte(cfg.JWTSecret))
+	authService := auth.NewService(authRepo, tokens, newMailer(cfg), []byte(cfg.JWTSecret))
+	google := auth.GoogleOptions{FrontendURL: frontendURL(cfg)}
+	if cfg.GoogleEnabled() {
+		google.Client = auth.NewGoogleClient(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURL)
+	}
 	authHandler := auth.NewHandler(authService, auth.CookieOptions{
 		Name:   cfg.CookieName,
 		Domain: cfg.CookieDomain,
 		Secure: cfg.CookieSecure,
-	})
+	}, google)
 
 	// Only the credential endpoints are limited. /me runs on every page load and
 	// /logout is a plain navigation away, so a per-IP budget there would lock
@@ -110,9 +109,36 @@ func New(cfg config.Config, pool *pgxpool.Pool) (*echo.Echo, error) {
 	authGroup.POST("/verify-email", authHandler.VerifyEmail, credentialLimiter)
 	authGroup.POST("/verify-email/resend", authHandler.ResendVerificationCode, credentialLimiter)
 	authGroup.POST("/logout", authHandler.Logout)
+	authGroup.GET("/google", authHandler.GoogleStart, credentialLimiter)
+	authGroup.GET("/google/callback", authHandler.GoogleCallback, credentialLimiter)
 	authGroup.GET("/me", authHandler.Me, auth.RequireAuth(tokens, cfg.CookieName, authRepo))
 
 	return e, nil
+}
+
+// newMailer picks how verification codes leave the server. Without a Resend
+// key, development prints them to the log so signup can be tested; production
+// sends nothing rather than log a code, and says so once at boot so a missing
+// key is noticed. Registration still succeeds either way.
+func newMailer(cfg config.Config) mail.Sender {
+	switch {
+	case cfg.ResendAPIKey != "":
+		return mail.NewResend(cfg.ResendAPIKey, cfg.MailFrom)
+	case cfg.Env == "production":
+		log.Print("mail: RESEND_API_KEY is empty; verification emails will not be sent")
+		return mail.Disabled{}
+	default:
+		return mail.Log{}
+	}
+}
+
+// frontendURL is where browser redirects (Google sign-in) land: the first
+// allowed origin, which is the site itself in every environment.
+func frontendURL(cfg config.Config) string {
+	if len(cfg.AllowedOrigins) == 0 {
+		return ""
+	}
+	return strings.TrimSuffix(cfg.AllowedOrigins[0], "/")
 }
 
 // ipExtractor trusts X-Forwarded-For only from peers we believe. In production

@@ -13,6 +13,7 @@ import { safeNextPath } from "@/lib/auth/routes";
 import { useAuthStore } from "@/store/auth-store";
 import { useInAuthModal } from "@/components/auth/auth-context";
 import { AuthHeader, Field, IconInput, PasswordInput, SubmitButton } from "@/components/auth/fields";
+import { AuthDivider, GoogleButton, useGoogleErrorToast } from "@/components/auth/google-button";
 
 export function LoginForm() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export function LoginForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
+  useGoogleErrorToast();
 
   const onSubmit = async (data: LoginInput) => {
     try {
@@ -41,6 +43,9 @@ export function LoginForm() {
   return (
     <div>
       <AuthHeader title="Welcome back" subtitle="Log in to continue trading on Void2Empire." />
+
+      <GoogleButton />
+      <AuthDivider />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <Field label="Email" htmlFor="login-email" error={errors.email?.message}>

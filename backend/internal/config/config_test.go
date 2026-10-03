@@ -138,21 +138,22 @@ func TestLoadHasNoJWTDefault(t *testing.T) {
 	}
 }
 
-func TestValidateMail(t *testing.T) {
+func TestValidateGoogle(t *testing.T) {
 	cases := []struct {
 		name    string
 		cfg     Config
 		wantErr bool
 	}{
-		{name: "development without key logs mail", cfg: Config{Env: "development"}},
-		{name: "production with key", cfg: Config{Env: "production", ResendAPIKey: "re_test"}},
-		{name: "production without key", cfg: Config{Env: "production"}, wantErr: true},
+		{name: "off", cfg: Config{}},
+		{name: "complete", cfg: Config{GoogleClientID: "id", GoogleClientSecret: "secret", GoogleRedirectURL: "http://localhost/cb"}},
+		{name: "missing secret", cfg: Config{GoogleClientID: "id", GoogleRedirectURL: "http://localhost/cb"}, wantErr: true},
+		{name: "missing redirect", cfg: Config{GoogleClientID: "id", GoogleClientSecret: "secret"}, wantErr: true},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if err := tc.cfg.ValidateMail(); (err != nil) != tc.wantErr {
-				t.Fatalf("ValidateMail() error = %v, wantErr %v", err, tc.wantErr)
+			if err := tc.cfg.ValidateGoogle(); (err != nil) != tc.wantErr {
+				t.Fatalf("ValidateGoogle() error = %v, wantErr %v", err, tc.wantErr)
 			}
 		})
 	}

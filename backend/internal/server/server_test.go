@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -193,5 +194,24 @@ func TestLogoutIsNotRateLimited(t *testing.T) {
 	}
 	if rec.Code == http.StatusTooManyRequests {
 		t.Error("/api/auth/logout is rate limited; only the credential routes should be")
+	}
+}
+
+func TestNewMailer(t *testing.T) {
+	cases := []struct {
+		name string
+		cfg  config.Config
+		want string
+	}{
+		{name: "key set", cfg: config.Config{Env: "production", ResendAPIKey: "re_x"}, want: "*mail.Resend"},
+		{name: "production without key sends nothing", cfg: config.Config{Env: "production"}, want: "mail.Disabled"},
+		{name: "development without key logs", cfg: config.Config{Env: "development"}, want: "mail.Log"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := fmt.Sprintf("%T", newMailer(tc.cfg)); got != tc.want {
+				t.Errorf("newMailer() = %s, want %s", got, tc.want)
+			}
+		})
 	}
 }

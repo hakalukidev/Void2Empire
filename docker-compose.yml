@@ -50,10 +50,13 @@ services:
       FEATURE_REAL_TRADING_ENABLED: ${FEATURE_REAL_TRADING_ENABLED:-false}
       FRONTEND_ORIGIN: https://${APP_DOMAIN}
       COOKIE_DOMAIN: ""
-      # Verification emails. The API refuses to boot in production without a
-      # key, so a VPS .env missing it fails the deploy's health gate loudly.
-      RESEND_API_KEY: ${RESEND_API_KEY}
-      MAIL_FROM: ${MAIL_FROM}
+      # Verification emails. Without a key the API still boots but sends no
+      # codes (it says so in its log); signup and Google sign-in keep working.
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: https://${APP_DOMAIN}/api/auth/google/callback
     depends_on:
       postgres:
         condition: service_healthy

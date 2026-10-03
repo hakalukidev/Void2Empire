@@ -17,6 +17,9 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 )
 
+// userColumns is the column list scanUser reads, in its order.
+const userColumns = `id, full_name, email, password_hash, country, phone, kyc_verified, email_verified_at, created_at, updated_at`
+
 type Repository struct {
 	pool *pgxpool.Pool
 }
@@ -45,14 +48,14 @@ func (r *Repository) CreateUser(ctx context.Context, u *models.User) error {
 
 func (r *Repository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	return r.scanUser(r.pool.QueryRow(ctx, `
-		SELECT id, full_name, email, password_hash, country, phone, kyc_verified, email_verified_at, created_at, updated_at
+		SELECT `+userColumns+`
 		FROM users WHERE email = $1
 	`, email))
 }
 
 func (r *Repository) FindByID(ctx context.Context, id string) (*models.User, error) {
 	return r.scanUser(r.pool.QueryRow(ctx, `
-		SELECT id, full_name, email, password_hash, country, phone, kyc_verified, email_verified_at, created_at, updated_at
+		SELECT `+userColumns+`
 		FROM users WHERE id = $1
 	`, id))
 }
